@@ -1,9 +1,23 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { BaseConfigService } from './config';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { INestApplication } from '@nestjs/common';
 
 (async () => {
   const app = await NestFactory.create(AppModule);
   const config = await app.get<BaseConfigService>(BaseConfigService);
+  applySwaggerConfig(app);
   await app.listen(config.http.port);
 })();
+
+const applySwaggerConfig = (app: INestApplication) => {
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('File Buddy Service')
+    .setDescription('The File Buddy Service API')
+    .setVersion('1.0')
+    .addTag('app')
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api_docs', app, document);
+};
