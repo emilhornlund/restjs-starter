@@ -3,12 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { BaseConfigService } from './base-config.service';
 import configuration from './configuration';
-
-enum Environments {
-  DEVELOPMENT = 'development',
-  PRODUCTION = 'production',
-  TEST = 'test',
-}
+import { Environments } from './models';
 
 const DefaultEnvironment = Environments.DEVELOPMENT;
 
@@ -25,6 +20,11 @@ const DefaultEnvironment = Environments.DEVELOPMENT;
         JWT_SECRET: Joi.string(),
         JWT_PUBLIC_KEY: Joi.string(),
         JWT_PRIVATE_KEY: Joi.string(),
+        DB_HOST: Joi.string(),
+        DB_PORT: Joi.number().default(5432),
+        DB_USERNAME: Joi.string(),
+        DB_PASSWORD: Joi.string(),
+        DB_DATABASE: Joi.string(),
       }),
       validationOptions: {
         allowUnknown: true,

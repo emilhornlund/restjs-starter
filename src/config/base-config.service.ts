@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModuleOptions } from '@nestjs/jwt';
+import { TypeOrmModuleOptions } from '@nestjs/typeorm/dist/interfaces/typeorm-options.interface';
 import * as fs from 'fs';
 import { resolve } from 'path';
 import { Algorithm } from 'jsonwebtoken';
-import { HttpConfig, JwtConfig } from './models';
+import { DatabaseConfig, Environments, HttpConfig, JwtConfig } from './models';
 
 @Injectable()
 export class BaseConfigService {
@@ -51,5 +52,35 @@ export class BaseConfigService {
         issuer: BaseConfigService.JWT_ISSUER,
       },
     });
+  }
+
+  private static get testTypeOrmModuleOptions(): Promise<TypeOrmModuleOptions> {
+    return Promise.resolve({
+      type: 'sqlite',
+      database: ':memory:',
+      autoLoadEntities: true,
+      synchronize: true,
+      keepConnectionAlive: true,
+    });
+  }
+
+  private get postgresTypeOrmModuleOptions(): Promise<TypeOrmModuleOptions> {
+    const { host, port, username, password, database } =
+      this.configService.get<DatabaseConfig>('database');
+    return Promise.resolve({
+      type: 'postgres',
+      host,
+      port,
+      username,
+      password,
+      database,
+      autoLoadEntities: true,
+    });
+  }
+
+  get typeOrmModuleOptions(): Promise<TypeOrmModuleOptions> {
+    return this.configService.get<string>('env') === Environments.TEST
+      ? BaseConfigService.testTypeOrmModuleOptions
+      : this.postgresTypeOrmModuleOptions;
   }
 }
