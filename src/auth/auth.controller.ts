@@ -1,5 +1,5 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { TokenAuthRequest, RefreshAuthRequest, TokenResponse } from './models';
 import { BadCredentialsException } from './exceptions';
@@ -13,8 +13,7 @@ export class AuthController {
   @Post('/token')
   @HttpCode(HttpStatus.CREATED)
   @ApiTokenCreatedResponse()
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
+  @ApiBadRequestResponse({
     description: BadCredentialsException.name,
     type: BadCredentialsException,
   })

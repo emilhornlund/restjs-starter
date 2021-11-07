@@ -2,9 +2,12 @@ import { Module } from '@nestjs/common';
 import { BaseConfigModule, BaseConfigService } from './config';
 import { AuthModule } from './auth';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CommonModule } from './common';
+import { UserModule } from './user';
 
 @Module({
   imports: [
+    CommonModule,
     BaseConfigModule,
     TypeOrmModule.forRootAsync({
       imports: [BaseConfigModule],
@@ -13,8 +16,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       inject: [BaseConfigService],
     }),
     AuthModule,
+    UserModule,
   ],
   controllers: [],
   providers: [],
+  exports: [CommonModule],
 })
 export class AppModule {}

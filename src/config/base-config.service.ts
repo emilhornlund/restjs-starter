@@ -60,12 +60,11 @@ export class BaseConfigService {
       database: ':memory:',
       autoLoadEntities: true,
       synchronize: true,
-      keepConnectionAlive: true,
     });
   }
 
   private get postgresTypeOrmModuleOptions(): Promise<TypeOrmModuleOptions> {
-    const { host, port, username, password, database } =
+    const { host, port, username, password, database, synchronize } =
       this.configService.get<DatabaseConfig>('database');
     return Promise.resolve({
       type: 'postgres',
@@ -74,6 +73,7 @@ export class BaseConfigService {
       username,
       password,
       database,
+      synchronize,
       autoLoadEntities: true,
     });
   }

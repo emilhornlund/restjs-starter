@@ -25,6 +25,7 @@ const DefaultEnvironment = Environments.DEVELOPMENT;
         DB_USERNAME: Joi.string(),
         DB_PASSWORD: Joi.string(),
         DB_DATABASE: Joi.string(),
+        DB_SYNCHRONIZE: Joi.bool().default(false),
       }),
       validationOptions: {
         allowUnknown: true,
