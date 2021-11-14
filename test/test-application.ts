@@ -1,11 +1,16 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from '../src/app.module';
 import { Connection } from 'typeorm';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
+import { AppModule } from '../src/app.module';
 import { UserDto, UserService } from '../src/user';
 import { JwtPayloadDto } from '../src/auth';
-import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { TestData } from './test-data';
+
+export interface AuthenticatedUserDto {
+  accessToken: string;
+  user: UserDto;
+}
 
 export class TestApplication {
   private app: INestApplication;
@@ -29,6 +34,20 @@ export class TestApplication {
 
   async signJwt(payload: JwtPayloadDto, options: JwtSignOptions) {
     return this.app.get<JwtService>(JwtService).sign(payload, options);
+  }
+
+  async createAuthenticatedUser(
+    expired = false,
+  ): Promise<AuthenticatedUserDto> {
+    const user = await this.createUser();
+    const accessToken = await this.signJwt(
+      {
+        userId: user.id,
+        authorities: [],
+      },
+      { expiresIn: expired ? -30 : 30 },
+    );
+    return { user, accessToken };
   }
 
   async createUser(count = 1): Promise<UserDto> {

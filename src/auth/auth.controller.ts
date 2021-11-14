@@ -3,13 +3,14 @@ import { ApiBadRequestResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { TokenAuthRequest, RefreshAuthRequest, TokenResponse } from './models';
 import { BadCredentialsException } from './exceptions';
-import { ApiTokenCreatedResponse } from './decorators';
+import { ApiTokenCreatedResponse, Public } from './decorators';
 
 @ApiTags('auth')
 @Controller('/auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @Public()
   @Post('/token')
   @HttpCode(HttpStatus.CREATED)
   @ApiTokenCreatedResponse()
@@ -26,6 +27,7 @@ export class AuthController {
     );
   }
 
+  @Public()
   @Post('/refresh')
   @ApiTokenCreatedResponse()
   public refreshToken(

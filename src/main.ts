@@ -20,6 +20,7 @@ const applySwaggerConfig = (app: INestApplication) => {
     .setTitle('File Buddy Service')
     .setDescription('The File Buddy Service API')
     .setVersion('1.0')
+    .addBearerAuth()
     .addTag('auth', 'Authentication endpoints')
     .addTag('Users', 'Users endpoints')
     .build();

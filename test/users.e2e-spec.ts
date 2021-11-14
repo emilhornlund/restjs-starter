@@ -26,29 +26,45 @@ describe('UserController (e2e)', () => {
   };
 
   describe('/users (GET)', () => {
-    it('should get an empty page of users with default page and size', async () => {
+    it('should get an page of users with default page and size', async () => {
+      const {
+        user: { id, username, email, createdAt, updatedAt },
+        accessToken,
+      } = await app.createAuthenticatedUser();
+
       return request(app.getHttpServer())
         .get('/users')
+        .set({ Authorization: 'Bearer ' + accessToken })
         .expect(200)
         .expect(({ body }) => {
           expect(body).toBeObject();
           expect(body).toStrictEqual({
-            users: [],
+            users: [
+              {
+                id,
+                username,
+                email,
+                createdAt: createdAt.toISOString(),
+                updatedAt: updatedAt.toISOString(),
+              },
+            ],
             page: {
               number: 0,
               size: 20,
-              totalPages: 0,
-              totalElements: 0,
+              totalPages: 1,
+              totalElements: 1,
             },
           });
         });
     });
 
     it('should get the first page of 5 users', async () => {
-      await app.createUsers(1, 10);
+      const { accessToken } = await app.createAuthenticatedUser();
+      await app.createUsers(2, 10);
 
       return request(app.getHttpServer())
         .get('/users?page=0&size=5')
+        .set({ Authorization: 'Bearer ' + accessToken })
         .expect(200)
         .expect(({ body }) => {
           expect(body).toBeObject();
@@ -67,10 +83,12 @@ describe('UserController (e2e)', () => {
     });
 
     it('should get the second page of 5 users', async () => {
-      await app.createUsers(1, 10);
+      const { accessToken } = await app.createAuthenticatedUser();
+      await app.createUsers(2, 10);
 
       return request(app.getHttpServer())
         .get('/users?page=1&size=5')
+        .set({ Authorization: 'Bearer ' + accessToken })
         .expect(200)
         .expect(({ body }) => {
           expect(body).toBeObject();
@@ -87,16 +105,50 @@ describe('UserController (e2e)', () => {
           );
         });
     });
+
+    it('should fail to get an page of users without an access token', async () => {
+      await app.createAuthenticatedUser();
+
+      return request(app.getHttpServer())
+        .get('/users')
+        .expect(401)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+        });
+    });
+
+    it('should fail to get an page of users with an expired access token', async () => {
+      const { accessToken } = await app.createAuthenticatedUser(true);
+
+      return request(app.getHttpServer())
+        .get('/users')
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .expect(401)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+        });
+    });
   });
 
   describe('/users (POST)', () => {
     it('should create a new user', async () => {
+      const { accessToken } = await app.createAuthenticatedUser();
+
       return request(app.getHttpServer())
         .post('/users')
+        .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          username: TestData.PrimaryUsername,
-          password: TestData.PrimaryPassword,
-          email: TestData.PrimaryEmail,
+          username: TestData.SecondaryUsername,
+          password: TestData.SecondaryPassword,
+          email: TestData.SecondaryEmail,
         })
         .expect(201)
         .expect(({ body }) => {
@@ -104,8 +156,8 @@ describe('UserController (e2e)', () => {
           expect(body).toStrictEqual(
             expect.objectContaining({
               id: expect.any(String),
-              username: TestData.PrimaryUsername,
-              email: TestData.PrimaryEmail,
+              username: TestData.SecondaryUsername,
+              email: TestData.SecondaryEmail,
               createdAt: expect.any(String),
               updatedAt: expect.any(String),
             }),
@@ -114,12 +166,13 @@ describe('UserController (e2e)', () => {
     });
 
     it('should fail to create a new user with a non unique username', async () => {
-      const { username } = await app.createUser();
+      const { accessToken } = await app.createAuthenticatedUser();
 
       return request(app.getHttpServer())
         .post('/users')
+        .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          username,
+          username: TestData.PrimaryUsername,
           password: TestData.PrimaryPassword,
           email: TestData.PrimaryEmail,
         })
@@ -140,12 +193,15 @@ describe('UserController (e2e)', () => {
     });
 
     it('should create a new user with a username equal to 2 characters', async () => {
+      const { accessToken } = await app.createAuthenticatedUser();
+
       return request(app.getHttpServer())
         .post('/users')
+        .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           username: TestData.ShortUsername,
-          password: TestData.PrimaryPassword,
-          email: TestData.PrimaryEmail,
+          password: TestData.SecondaryPassword,
+          email: TestData.SecondaryEmail,
         })
         .expect(201)
         .expect(({ body }) => {
@@ -154,7 +210,7 @@ describe('UserController (e2e)', () => {
             expect.objectContaining({
               id: expect.any(String),
               username: TestData.ShortUsername,
-              email: TestData.PrimaryEmail,
+              email: TestData.SecondaryEmail,
               createdAt: expect.any(String),
               updatedAt: expect.any(String),
             }),
@@ -163,8 +219,11 @@ describe('UserController (e2e)', () => {
     });
 
     it('should fail to create a new user with a username shorter than 2 characters', async () => {
+      const { accessToken } = await app.createAuthenticatedUser();
+
       return request(app.getHttpServer())
         .post('/users')
+        .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           username: TestData.InvalidTooShortUsername,
           password: TestData.PrimaryPassword,
@@ -190,12 +249,15 @@ describe('UserController (e2e)', () => {
     });
 
     it('should create a new user with a username equal to 20 characters', async () => {
+      const { accessToken } = await app.createAuthenticatedUser();
+
       return request(app.getHttpServer())
         .post('/users')
+        .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           username: TestData.LongUsername,
-          password: TestData.PrimaryPassword,
-          email: TestData.PrimaryEmail,
+          password: TestData.SecondaryPassword,
+          email: TestData.SecondaryEmail,
         })
         .expect(201)
         .expect(({ body }) => {
@@ -204,7 +266,7 @@ describe('UserController (e2e)', () => {
             expect.objectContaining({
               id: expect.any(String),
               username: TestData.LongUsername,
-              email: TestData.PrimaryEmail,
+              email: TestData.SecondaryEmail,
               createdAt: expect.any(String),
               updatedAt: expect.any(String),
             }),
@@ -213,8 +275,11 @@ describe('UserController (e2e)', () => {
     });
 
     it('should fail to create a new user with a username longer than 20 characters', async () => {
+      const { accessToken } = await app.createAuthenticatedUser();
+
       return request(app.getHttpServer())
         .post('/users')
+        .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           username: TestData.InvalidTooLongUsername,
           password: TestData.PrimaryPassword,
@@ -240,8 +305,11 @@ describe('UserController (e2e)', () => {
     });
 
     it('should fail to create a new user with an invalid email address', async () => {
+      const { accessToken } = await app.createAuthenticatedUser();
+
       return request(app.getHttpServer())
         .post('/users')
+        .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           username: TestData.PrimaryUsername,
           password: TestData.PrimaryPassword,
@@ -262,15 +330,59 @@ describe('UserController (e2e)', () => {
           });
         });
     });
+
+    it('should fail to create a new user without an access token', async () => {
+      await app.createAuthenticatedUser();
+
+      return request(app.getHttpServer())
+        .post('/users')
+        .send({
+          username: TestData.SecondaryUsername,
+          password: TestData.SecondaryPassword,
+          email: TestData.SecondaryEmail,
+        })
+        .expect(401)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+        });
+    });
+
+    it('should fail to create a new user with an expired access token', async () => {
+      const { accessToken } = await app.createAuthenticatedUser(true);
+
+      return request(app.getHttpServer())
+        .post('/users')
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          username: TestData.SecondaryUsername,
+          password: TestData.SecondaryPassword,
+          email: TestData.SecondaryEmail,
+        })
+        .expect(401)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+        });
+    });
   });
 
   describe('/users/:userId (GET)', () => {
     it('should get an existing user by id', async () => {
-      const { id, username, email, createdAt, updatedAt } =
-        await app.createUser();
+      const {
+        user: { id, username, email, createdAt, updatedAt },
+        accessToken,
+      } = await app.createAuthenticatedUser();
 
       return request(app.getHttpServer())
         .get('/users/' + id)
+        .set({ Authorization: 'Bearer ' + accessToken })
         .expect(200)
         .expect(({ body }) => {
           expect(body).toBeObject();
@@ -285,8 +397,11 @@ describe('UserController (e2e)', () => {
     });
 
     it('should fail to get a non existing user', async () => {
+      const { accessToken } = await app.createAuthenticatedUser();
+
       return request(app.getHttpServer())
         .get('/users/' + TestData.NonExistingUserId)
+        .set({ Authorization: 'Bearer ' + accessToken })
         .expect(404)
         .expect(({ body }) => {
           expect(body).toBeObject();
@@ -296,14 +411,54 @@ describe('UserController (e2e)', () => {
           });
         });
     });
+
+    it('should fail to get an existing user by id without an access token', async () => {
+      const {
+        user: { id },
+      } = await app.createAuthenticatedUser();
+
+      return request(app.getHttpServer())
+        .get('/users/' + id)
+        .expect(401)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+        });
+    });
+
+    it('should fail to get an existing user by id with an expired access token', async () => {
+      const {
+        user: { id },
+        accessToken,
+      } = await app.createAuthenticatedUser(true);
+
+      return request(app.getHttpServer())
+        .get('/users/' + id)
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .expect(401)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+        });
+    });
   });
 
   describe('/users/:userId (PUT)', () => {
     it('should update an existing user', async () => {
-      const { id, createdAt } = await app.createUser();
+      const {
+        user: { id, createdAt },
+        accessToken,
+      } = await app.createAuthenticatedUser();
 
       return request(app.getHttpServer())
         .put('/users/' + id)
+        .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           username: TestData.SecondaryUsername,
           email: TestData.SecondaryEmail,
@@ -324,10 +479,14 @@ describe('UserController (e2e)', () => {
     });
 
     it('should update an existing user without changing username', async () => {
-      const { id, username, createdAt } = await app.createUser();
+      const {
+        user: { id, username, createdAt },
+        accessToken,
+      } = await app.createAuthenticatedUser();
 
       return request(app.getHttpServer())
         .put('/users/' + id)
+        .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           username,
           email: TestData.SecondaryEmail,
@@ -348,8 +507,11 @@ describe('UserController (e2e)', () => {
     });
 
     it('should fail to update a non existing user', async () => {
+      const { accessToken } = await app.createAuthenticatedUser();
+
       return request(app.getHttpServer())
         .put('/users/' + TestData.NonExistingUserId)
+        .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           username: TestData.SecondaryUsername,
           email: TestData.SecondaryEmail,
@@ -365,11 +527,16 @@ describe('UserController (e2e)', () => {
     });
 
     it('should fail to update an existing user with a non unique username', async () => {
-      const { username } = await app.createUser(1);
+      const {
+        user: { username },
+        accessToken,
+      } = await app.createAuthenticatedUser();
+
       const { id } = await app.createUser(2);
 
       return request(app.getHttpServer())
         .put('/users/' + id)
+        .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           username,
           email: TestData.SecondaryEmail,
@@ -391,10 +558,14 @@ describe('UserController (e2e)', () => {
     });
 
     it('should fail to update an existing user with an invalid email address', async () => {
-      const { id } = await app.createUser();
+      const {
+        user: { id },
+        accessToken,
+      } = await app.createAuthenticatedUser();
 
       return request(app.getHttpServer())
         .put('/users/' + id)
+        .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           username: TestData.SecondaryUsername,
           email: TestData.InvalidEmail,
@@ -414,14 +585,62 @@ describe('UserController (e2e)', () => {
           });
         });
     });
+
+    it('should fail update an existing user without an access token', async () => {
+      const {
+        user: { id },
+      } = await app.createAuthenticatedUser();
+
+      return request(app.getHttpServer())
+        .put('/users/' + id)
+        .send({
+          username: TestData.SecondaryUsername,
+          email: TestData.SecondaryEmail,
+        })
+        .expect(401)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+        });
+    });
+
+    it('should fail update an existing user with an expired access token', async () => {
+      const {
+        user: { id },
+        accessToken,
+      } = await app.createAuthenticatedUser(true);
+
+      return request(app.getHttpServer())
+        .put('/users/' + id)
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          username: TestData.SecondaryUsername,
+          email: TestData.SecondaryEmail,
+        })
+        .expect(401)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+        });
+    });
   });
 
   describe('/users/:userId (DELETE)', () => {
     it('should delete an existing user', async () => {
-      const { id } = await app.createUser();
+      const {
+        user: { id },
+        accessToken,
+      } = await app.createAuthenticatedUser();
 
       return request(app.getHttpServer())
         .delete('/users/' + id)
+        .set({ Authorization: 'Bearer ' + accessToken })
         .expect(204)
         .expect(({ body }) => {
           expect(body).toBeEmpty();
@@ -429,14 +648,53 @@ describe('UserController (e2e)', () => {
     });
 
     it('should fail to delete a non existing user', async () => {
+      const { accessToken } = await app.createAuthenticatedUser();
+
       return request(app.getHttpServer())
         .delete('/users/' + TestData.NonExistingUserId)
+        .set({ Authorization: 'Bearer ' + accessToken })
         .expect(404)
         .expect(({ body }) => {
           expect(body).toBeObject();
           expect(body).toStrictEqual({
             statusCode: 404,
             message: `User with id \`${TestData.NonExistingUserId}\` was not found.`,
+          });
+        });
+    });
+
+    it('should fail delete an existing user without an access token', async () => {
+      const {
+        user: { id },
+      } = await app.createAuthenticatedUser();
+
+      return request(app.getHttpServer())
+        .delete('/users/' + id)
+        .expect(401)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+        });
+    });
+
+    it('should fail delete an existing user with an expired access token', async () => {
+      const {
+        user: { id },
+        accessToken,
+      } = await app.createAuthenticatedUser(true);
+
+      return request(app.getHttpServer())
+        .delete('/users/' + id)
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .expect(401)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 401,
+            message: 'Unauthorized',
           });
         });
     });

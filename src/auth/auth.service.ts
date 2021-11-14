@@ -97,6 +97,24 @@ export class AuthService {
   }
 
   /**
+   * Verifies the supplied access token and throws and unauthorized
+   * exception wheter the JWT is malformed or expired.
+   *
+   * @param accessToken The access token
+   */
+  public async verifyAccessToken(accessToken: string): Promise<JwtPayloadDto> {
+    let payload: JwtPayloadDto;
+
+    try {
+      payload = await this.jwtService.verifyAsync<JwtPayloadDto>(accessToken);
+    } catch (e) {
+      throw new UnauthorizedException();
+    }
+
+    return payload;
+  }
+
+  /**
    * Verifies the supplied refresh token and throws an unauthorized
    * exception whether the JWT is malformed or expired. If the token
    * contains invalid claims then throws a bad jwt exception.

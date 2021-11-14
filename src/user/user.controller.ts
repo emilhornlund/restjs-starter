@@ -1,4 +1,5 @@
 import {
+  ApiBearerAuth,
   ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
@@ -36,6 +37,7 @@ import {
   PageableQueryParam,
 } from '../common/decorators';
 
+@ApiBearerAuth()
 @ApiTags('Users')
 @Controller('/users')
 export class UserController {
