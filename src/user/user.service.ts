@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Not } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { PagedUserDto, UserDto, UserEntity } from './models';
+import { PagedUserDto, UserDto, UserEntity, UserRole } from './models';
 import { UserRepository } from './user.repository';
 import {
   EmailUniqueConstraintException,
@@ -57,11 +57,13 @@ export class UserService {
    * @param username The user's username
    * @param password The user's password
    * @param email The user's email
+   * @param role The user's role
    */
   public async createUser(
     username: string,
     password: string,
     email: string,
+    role: UserRole = UserRole.REGULAR_USER,
   ): Promise<UserDto> {
     await this.verifyUsernameUnique(username);
     await this.verifyEmailUnique(email);
@@ -70,6 +72,7 @@ export class UserService {
     entity.username = username;
     entity.password = await bcrypt.hash(password, 10);
     entity.email = email;
+    entity.role = role;
 
     const savedEntity = await this.userRepository.save(entity);
     return UserConverter.convertToUserDto(savedEntity);

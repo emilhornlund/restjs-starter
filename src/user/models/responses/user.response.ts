@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { UserRole } from '../dto';
 
 export class UserResponse {
   @ApiProperty({
@@ -21,6 +22,13 @@ export class UserResponse {
     example: 'testuser@example.com',
   })
   email: string;
+
+  @ApiProperty({
+    title: 'Role',
+    description: '',
+    example: UserRole.REGULAR_USER,
+  })
+  role: UserRole;
 
   @ApiProperty({
     title: 'Created At',

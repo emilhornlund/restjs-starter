@@ -1,9 +1,16 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { Authorities, JwtPayloadDto, TokenDto } from './models';
+import { JwtPayloadDto, TokenDto } from './models';
 import { BadCredentialsException, BadJwtException } from './exceptions';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { UserEntity, UserRepository } from '../user';
+import {
+  UserAuthority,
+  UserEntity,
+  UserNotFoundException,
+  UserRepository,
+  UserRole,
+  UserRoleAuthority,
+} from '../user';
 
 @Injectable()
 export class AuthService {
@@ -25,10 +32,10 @@ export class AuthService {
     username: string,
     password: string,
   ): Promise<TokenDto> {
-    const { id } = await this.verifyCredentials(username, password);
+    const { id, role } = await this.verifyCredentials(username, password);
 
-    const accessToken = await this.signAccessToken(id);
-    const refreshToken = await this.signRefreshToken(id);
+    const accessToken = await this.signAccessToken(id, role);
+    const refreshToken = await this.signRefreshToken(id, role);
 
     return { accessToken, refreshToken };
   }
@@ -43,8 +50,10 @@ export class AuthService {
   ): Promise<TokenDto> {
     const { userId } = await this.verifyRefreshToken(refreshToken);
 
-    const accessToken = await this.signAccessToken(userId);
-    const newRefreshToken = await this.signRefreshToken(userId);
+    const { role } = await this.getUserByIdOrThrow(userId);
+
+    const accessToken = await this.signAccessToken(userId, role);
+    const newRefreshToken = await this.signRefreshToken(userId, role);
 
     return { accessToken, refreshToken: newRefreshToken };
   }
@@ -53,11 +62,12 @@ export class AuthService {
    * Signs a new access token from the supplied user's id.
    *
    * @param userId The user's id
+   * @param role The user's role
    * @private
    */
-  private signAccessToken(userId: string): Promise<string> {
+  private signAccessToken(userId: string, role: UserRole): Promise<string> {
     return this.jwtService.signAsync(
-      { userId, authorities: [] },
+      { userId, role, authorities: UserRoleAuthority[role] },
       { expiresIn: AuthService.ACCESS_TOKEN_EXPIRES_IN },
     );
   }
@@ -66,11 +76,12 @@ export class AuthService {
    * Signs a new refresh token from the supplied user's id.
    *
    * @param userId The user's id
+   * @param role The user's role
    * @private
    */
-  private signRefreshToken(userId: string): Promise<string> {
+  private signRefreshToken(userId: string, role: UserRole): Promise<string> {
     return this.jwtService.signAsync(
-      { userId, authorities: [Authorities.REFRESH_TOKEN] },
+      { userId, role, authorities: [UserAuthority.REFRESH_TOKEN] },
       { expiresIn: AuthService.REFRESH_TOKEN_EXPIRES_IN },
     );
   }
@@ -138,17 +149,25 @@ export class AuthService {
     if (
       !userId ||
       !authorities ||
-      !authorities.includes(Authorities.REFRESH_TOKEN)
+      !authorities.includes(UserAuthority.REFRESH_TOKEN)
     ) {
       throw new BadJwtException();
     }
 
-    try {
-      await this.userRepository.findOneOrFail(userId);
-    } catch (e) {
-      throw new BadJwtException();
-    }
+    await this.getUserByIdOrThrow(userId);
 
     return payload;
+  }
+
+  private async getUserByIdOrThrow(userId: string): Promise<UserEntity> {
+    let userEntity: UserEntity;
+
+    try {
+      userEntity = await this.userRepository.findOneOrFail(userId);
+    } catch (e) {
+      throw new UserNotFoundException(userId);
+    }
+
+    return userEntity;
   }
 }

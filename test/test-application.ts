@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Connection } from 'typeorm';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { AppModule } from '../src/app.module';
-import { UserDto, UserService } from '../src/user';
+import { UserDto, UserRole, UserRoleAuthority, UserService } from '../src/user';
 import { JwtPayloadDto } from '../src/auth';
 import { TestData } from './test-data';
 
@@ -36,37 +36,45 @@ export class TestApplication {
     return this.app.get<JwtService>(JwtService).sign(payload, options);
   }
 
+  decodeJwt(token: string): JwtPayloadDto {
+    return this.app.get<JwtService>(JwtService).decode(token) as JwtPayloadDto;
+  }
+
   async createAuthenticatedUser(
+    role: UserRole,
     expired = false,
   ): Promise<AuthenticatedUserDto> {
-    const user = await this.createUser();
+    const user = await this.createUser(1, role);
     const accessToken = await this.signJwt(
       {
         userId: user.id,
-        authorities: [],
+        role,
+        authorities: UserRoleAuthority[role],
       },
       { expiresIn: expired ? -30 : 30 },
     );
     return { user, accessToken };
   }
 
-  async createUser(count = 1): Promise<UserDto> {
+  async createUser(count = 1, role: UserRole): Promise<UserDto> {
     return await this.app
       .get<UserService>(UserService)
       .createUser(
         TestData.Username(count),
         TestData.PrimaryPassword,
         TestData.Email(count),
+        role,
       );
   }
 
-  async createUsers(from: number, to: number) {
+  async createUsers(from: number, to: number, role: UserRole) {
     const userService = this.app.get<UserService>(UserService);
     for (let i = from; i < to + 1; i++) {
       await userService.createUser(
         TestData.Username(i),
         TestData.PrimaryPassword,
         TestData.Email(i),
+        role,
       );
     }
   }

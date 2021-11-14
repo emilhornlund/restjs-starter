@@ -1,6 +1,7 @@
-import { Authorities } from './authorities.enum';
+import { UserAuthority, UserRole } from '../../../user';
 
 export interface JwtPayloadDto {
   userId: string;
-  authorities: Authorities[];
+  role: UserRole;
+  authorities: UserAuthority[];
 }

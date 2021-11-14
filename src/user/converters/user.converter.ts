@@ -11,6 +11,7 @@ export class UserConverter {
     id: userEntity.id,
     username: userEntity.username,
     email: userEntity.email,
+    role: userEntity.role,
     createdAt: userEntity.createdAt,
     updatedAt: userEntity.updatedAt,
   });
@@ -19,6 +20,7 @@ export class UserConverter {
     id: userDto.id,
     username: userDto.username,
     email: userDto.email,
+    role: userDto.role,
     createdAt: userDto.createdAt,
     updatedAt: userDto.updatedAt,
   });

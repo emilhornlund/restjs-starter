@@ -1,6 +1,7 @@
 import * as request from 'supertest';
 import { TestApplication } from './test-application';
 import { TestData } from './test-data';
+import { UserRole } from '../src/user';
 
 describe('CurrentUserController (e2e)', () => {
   const app: TestApplication = new TestApplication();
@@ -16,9 +17,9 @@ describe('CurrentUserController (e2e)', () => {
   describe('/me (GET)', () => {
     it('should get the currently authenticated user', async () => {
       const {
-        user: { id, username, email, createdAt, updatedAt },
+        user: { id, username, email, role, createdAt, updatedAt },
         accessToken,
-      } = await app.createAuthenticatedUser();
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
       return request(app.getHttpServer())
         .get('/me')
@@ -30,6 +31,7 @@ describe('CurrentUserController (e2e)', () => {
             id,
             username,
             email,
+            role,
             createdAt: createdAt.toISOString(),
             updatedAt: updatedAt.toISOString(),
           });
@@ -40,6 +42,7 @@ describe('CurrentUserController (e2e)', () => {
       const accessToken = await app.signJwt(
         {
           userId: TestData.NonExistingUserId,
+          role: UserRole.REGULAR_USER,
           authorities: [],
         },
         { expiresIn: 30 },
@@ -59,7 +62,7 @@ describe('CurrentUserController (e2e)', () => {
     });
 
     it('should fail to get the currently authenticated user without an access token', async () => {
-      await app.createAuthenticatedUser();
+      await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
       return request(app.getHttpServer())
         .get('/me')
@@ -74,7 +77,10 @@ describe('CurrentUserController (e2e)', () => {
     });
 
     it('should fail to get the currently authenticated user with an expired access token', async () => {
-      const { accessToken } = await app.createAuthenticatedUser(true);
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+        true,
+      );
 
       return request(app.getHttpServer())
         .get('/me')
@@ -92,7 +98,9 @@ describe('CurrentUserController (e2e)', () => {
 
   describe('/me/password (PATCH)', () => {
     it("should update the currently authenticated user's password", async () => {
-      const { accessToken } = await app.createAuthenticatedUser();
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
 
       return request(app.getHttpServer())
         .patch('/me/password')
@@ -108,7 +116,9 @@ describe('CurrentUserController (e2e)', () => {
     });
 
     it("should fail update the currently authenticated user's password with an incorrect old password", async () => {
-      const { accessToken } = await app.createAuthenticatedUser();
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
 
       return request(app.getHttpServer())
         .patch('/me/password')
@@ -128,7 +138,7 @@ describe('CurrentUserController (e2e)', () => {
     });
 
     it("should fail to update the currently authenticated user's password without an access token", async () => {
-      await app.createAuthenticatedUser();
+      await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
       return request(app.getHttpServer())
         .patch('/me/password')
@@ -147,7 +157,10 @@ describe('CurrentUserController (e2e)', () => {
     });
 
     it("should fail to update the currently authenticated user's password with an expired access token", async () => {
-      const { accessToken } = await app.createAuthenticatedUser(true);
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+        true,
+      );
 
       return request(app.getHttpServer())
         .patch('/me/password')

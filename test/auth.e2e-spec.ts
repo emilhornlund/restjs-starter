@@ -1,7 +1,8 @@
 import * as request from 'supertest';
-import { Authorities } from '../src/auth';
 import { TestApplication } from './test-application';
 import { TestData } from './test-data';
+import { UserAuthority, UserRole, UserRoleAuthority } from '../src/user';
+import { JwtPayloadDto } from '../src/auth';
 
 describe('AuthController (e2e)', () => {
   const app: TestApplication = new TestApplication();
@@ -14,43 +15,104 @@ describe('AuthController (e2e)', () => {
     await app.close();
   });
 
+  const expectJwt = (token: string, payload: JwtPayloadDto) => {
+    const { userId, role, authorities } = payload;
+    expect(app.decodeJwt(token)).toStrictEqual(
+      expect.objectContaining({
+        userId,
+        role,
+        authorities,
+        aud: 'test',
+        exp: expect.any(Number),
+        iat: expect.any(Number),
+        iss: 'filebuddy',
+      }),
+    );
+  };
+
+  const expectTokenResponse = (body, userId, role) => {
+    expect.assertions(3);
+    expect(body).toStrictEqual(
+      expect.objectContaining({
+        accessToken: expect.any(String),
+        refreshToken: expect.any(String),
+      }),
+    );
+
+    const { accessToken, refreshToken } = body;
+
+    expectJwt(accessToken, {
+      userId,
+      role,
+      authorities: UserRoleAuthority[role],
+    });
+    expectJwt(refreshToken, {
+      userId,
+      role,
+      authorities: [UserAuthority.REFRESH_TOKEN],
+    });
+  };
+
   describe('/auth/token (POST)', () => {
-    it('should issue both a new access and refresh token from a username and password', async () => {
-      const { username } = await app.createUser();
+    it('should issue both a new access and refresh token from a username and password when role is regular user', async () => {
+      const { id, username, role } = await app.createUser(
+        1,
+        UserRole.REGULAR_USER,
+      );
 
       return request(app.getHttpServer())
         .post('/auth/token')
         .send({ username, password: TestData.PrimaryPassword })
         .expect(201)
         .expect(({ body }) => {
-          expect(body).toStrictEqual(
-            expect.objectContaining({
-              accessToken: expect.any(String),
-              refreshToken: expect.any(String),
-            }),
-          );
+          expectTokenResponse(body, id, role);
         });
     });
 
-    it('should issue both a new access and refresh token from an email and password', async () => {
-      const { email } = await app.createUser();
+    it('should issue both a new access and refresh token from a username and password when role is super user', async () => {
+      const { id, username, role } = await app.createUser(
+        1,
+        UserRole.SUPER_USER,
+      );
+
+      return request(app.getHttpServer())
+        .post('/auth/token')
+        .send({ username, password: TestData.PrimaryPassword })
+        .expect(201)
+        .expect(({ body }) => {
+          expectTokenResponse(body, id, role);
+        });
+    });
+
+    it('should issue both a new access and refresh token from an email and password when role is regular user', async () => {
+      const { id, email, role } = await app.createUser(
+        1,
+        UserRole.REGULAR_USER,
+      );
 
       return request(app.getHttpServer())
         .post('/auth/token')
         .send({ username: email, password: TestData.PrimaryPassword })
         .expect(201)
         .expect(({ body }) => {
-          expect(body).toStrictEqual(
-            expect.objectContaining({
-              accessToken: expect.any(String),
-              refreshToken: expect.any(String),
-            }),
-          );
+          expectTokenResponse(body, id, role);
+        });
+    });
+
+    it('should issue both a new access and refresh token from an email and password when role is super user', async () => {
+      const { id, email, role } = await app.createUser(1, UserRole.SUPER_USER);
+
+      return request(app.getHttpServer())
+        .post('/auth/token')
+        .send({ username: email, password: TestData.PrimaryPassword })
+        .expect(201)
+        .expect(({ body }) => {
+          expectTokenResponse(body, id, role);
         });
     });
 
     it('should fail to issue both new access and refresh token since wrong username', async () => {
-      await app.createUser();
+      await app.createUser(1, UserRole.REGULAR_USER);
 
       return request(app.getHttpServer())
         .post('/auth/token')
@@ -63,7 +125,7 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should fail to issue both new access and refresh token since wrong email', async () => {
-      await app.createUser();
+      await app.createUser(1, UserRole.REGULAR_USER);
 
       return request(app.getHttpServer())
         .post('/auth/token')
@@ -76,7 +138,7 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should fail to issue both new access and refresh token since wrong username or password', async () => {
-      await app.createUser();
+      await app.createUser(1, UserRole.REGULAR_USER);
 
       return request(app.getHttpServer())
         .post('/auth/token')
@@ -89,7 +151,7 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should fail to issue both new access and refresh token since wrong email or password', async () => {
-      await app.createUser();
+      await app.createUser(1, UserRole.REGULAR_USER);
 
       return request(app.getHttpServer())
         .post('/auth/token')
@@ -103,12 +165,13 @@ describe('AuthController (e2e)', () => {
   });
 
   describe('/auth/refresh (POST)', () => {
-    it('should refresh authentication using an existing token and then issue new', async () => {
-      const { id } = await app.createUser();
+    it('should refresh authentication using an existing token and then issue new when role is regular user', async () => {
+      const { id, role } = await app.createUser(1, UserRole.REGULAR_USER);
       const refreshToken = await app.signJwt(
         {
           userId: id,
-          authorities: [Authorities.REFRESH_TOKEN],
+          role,
+          authorities: [UserAuthority.REFRESH_TOKEN],
         },
         { expiresIn: 30 },
       );
@@ -118,17 +181,32 @@ describe('AuthController (e2e)', () => {
         .send({ refreshToken })
         .expect(201)
         .expect(({ body }) => {
-          expect(body).toStrictEqual(
-            expect.objectContaining({
-              accessToken: expect.any(String),
-              refreshToken: expect.any(String),
-            }),
-          );
+          expectTokenResponse(body, id, role);
+        });
+    });
+
+    it('should refresh authentication using an existing token and then issue new when role is super user', async () => {
+      const { id, role } = await app.createUser(1, UserRole.SUPER_USER);
+      const refreshToken = await app.signJwt(
+        {
+          userId: id,
+          role,
+          authorities: [UserAuthority.REFRESH_TOKEN],
+        },
+        { expiresIn: 30 },
+      );
+
+      return request(app.getHttpServer())
+        .post('/auth/refresh')
+        .send({ refreshToken })
+        .expect(201)
+        .expect(({ body }) => {
+          expectTokenResponse(body, id, role);
         });
     });
 
     it('should fail to refresh authentication using an invalid JWT', async () => {
-      await app.createUser();
+      await app.createUser(1, UserRole.REGULAR_USER);
 
       return request(app.getHttpServer())
         .post('/auth/refresh')
@@ -138,10 +216,11 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should fail to refresh authentication without correct refresh authority', async () => {
-      const { id } = await app.createUser();
+      const { id, role } = await app.createUser(1, UserRole.REGULAR_USER);
       const refreshToken = await app.signJwt(
         {
           userId: id,
+          role,
           authorities: [],
         },
         { expiresIn: 30 },
@@ -155,11 +234,12 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should fail to refresh authentication without an valid userId', async () => {
-      await app.createUser();
+      await app.createUser(1, UserRole.REGULAR_USER);
       const refreshToken = await app.signJwt(
         {
           userId: TestData.NonExistingUserId,
-          authorities: [Authorities.REFRESH_TOKEN],
+          role: UserRole.REGULAR_USER,
+          authorities: [UserAuthority.REFRESH_TOKEN],
         },
         { expiresIn: 30 },
       );
@@ -167,16 +247,20 @@ describe('AuthController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/auth/refresh')
         .send({ refreshToken })
-        .expect(400)
-        .expect({ statusCode: 400, message: 'Bad jwt' });
+        .expect(404)
+        .expect({
+          statusCode: 404,
+          message: `User with id \`${TestData.NonExistingUserId}\` was not found.`,
+        });
     });
 
     it('should fail to refresh authentication with an expired refresh token', async () => {
-      const { id } = await app.createUser();
+      const { id, role } = await app.createUser(1, UserRole.REGULAR_USER);
       const refreshToken = await app.signJwt(
         {
           userId: id,
-          authorities: [Authorities.REFRESH_TOKEN],
+          role,
+          authorities: [UserAuthority.REFRESH_TOKEN],
         },
         { expiresIn: -30 },
       );

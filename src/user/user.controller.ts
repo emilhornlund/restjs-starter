@@ -20,6 +20,7 @@ import {
   CreateUserRequest,
   PagedUserResponse,
   UpdateUserRequest,
+  UserAuthority,
   UserResponse,
 } from './models';
 import {
@@ -36,6 +37,7 @@ import {
   ApiPageableQueryParam,
   PageableQueryParam,
 } from '../common/decorators';
+import { HasUserAuthority } from '../auth/decorators/has-authority.decorator';
 
 @ApiBearerAuth()
 @ApiTags('Users')
@@ -55,6 +57,7 @@ export class UserController {
     description: 'Page of users',
     type: PagedUserResponse,
   })
+  @HasUserAuthority(UserAuthority.USER_ADMINISTRATION_READ)
   public findAllUsers(
     @PageableQueryParam() pageable: PageableRequest,
   ): Promise<PagedUserResponse> {
@@ -70,6 +73,7 @@ export class UserController {
     description: 'Creates a new user from the provided information.',
   })
   @ApiUserCreatedResponse()
+  @HasUserAuthority(UserAuthority.USER_ADMINISTRATION_WRITE)
   public createUser(
     @Body() createUserRequest: CreateUserRequest,
   ): Promise<UserResponse> {
@@ -92,6 +96,7 @@ export class UserController {
   @ApiUserIdParam()
   @ApiUserOkResponse()
   @ApiUserNotFoundResponse()
+  @HasUserAuthority(UserAuthority.USER_ADMINISTRATION_READ)
   public findUser(@UserIdParam() userId: string): Promise<UserResponse> {
     return this.userService
       .getUser(userId)
@@ -108,6 +113,7 @@ export class UserController {
   @ApiUserIdParam()
   @ApiUserOkResponse()
   @ApiUserNotFoundResponse()
+  @HasUserAuthority(UserAuthority.USER_ADMINISTRATION_WRITE)
   public updateUser(
     @UserIdParam() userId: string,
     @Body() updateUserRequest: UpdateUserRequest,
@@ -127,6 +133,7 @@ export class UserController {
   @ApiUserIdParam()
   @ApiNoContentResponse({ description: 'No Content' })
   @ApiUserNotFoundResponse()
+  @HasUserAuthority(UserAuthority.USER_ADMINISTRATION_WRITE)
   public deleteUser(@UserIdParam() userId: string) {
     return this.userService.deleteUser(userId);
   }

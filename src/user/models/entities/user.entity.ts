@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { UserRole } from '../dto';
 
 @Entity('users')
 export class UserEntity {
@@ -19,6 +20,9 @@ export class UserEntity {
 
   @Column({ unique: true })
   email: string;
+
+  @Column({ default: UserRole.REGULAR_USER })
+  role: UserRole;
 
   @CreateDateColumn({ name: 'created_at ' })
   createdAt: Date;

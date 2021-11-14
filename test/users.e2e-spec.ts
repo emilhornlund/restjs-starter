@@ -1,6 +1,7 @@
 import * as request from 'supertest';
 import { TestApplication } from './test-application';
 import { TestData } from './test-data';
+import { UserRole } from '../src/user';
 
 describe('UserController (e2e)', () => {
   const app: TestApplication = new TestApplication();
@@ -20,6 +21,7 @@ describe('UserController (e2e)', () => {
         id: expect.any(String),
         username: TestData.Username(from + i),
         email: TestData.Email(from + i),
+        role: UserRole.REGULAR_USER,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
       }));
@@ -28,9 +30,9 @@ describe('UserController (e2e)', () => {
   describe('/users (GET)', () => {
     it('should get an page of users with default page and size', async () => {
       const {
-        user: { id, username, email, createdAt, updatedAt },
+        user: { id, username, email, role, createdAt, updatedAt },
         accessToken,
-      } = await app.createAuthenticatedUser();
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
       return request(app.getHttpServer())
         .get('/users')
@@ -44,6 +46,7 @@ describe('UserController (e2e)', () => {
                 id,
                 username,
                 email,
+                role,
                 createdAt: createdAt.toISOString(),
                 updatedAt: updatedAt.toISOString(),
               },
@@ -59,8 +62,11 @@ describe('UserController (e2e)', () => {
     });
 
     it('should get the first page of 5 users', async () => {
-      const { accessToken } = await app.createAuthenticatedUser();
-      await app.createUsers(2, 10);
+      const {
+        user: { id, username, email, role, createdAt, updatedAt },
+        accessToken,
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
+      await app.createUsers(2, 10, UserRole.REGULAR_USER);
 
       return request(app.getHttpServer())
         .get('/users?page=0&size=5')
@@ -70,7 +76,17 @@ describe('UserController (e2e)', () => {
           expect(body).toBeObject();
           expect(body).toStrictEqual(
             expect.objectContaining({
-              users: arrayContainingUsers(1, 5),
+              users: [
+                {
+                  id,
+                  username,
+                  email,
+                  role,
+                  createdAt: createdAt.toISOString(),
+                  updatedAt: updatedAt.toISOString(),
+                },
+                ...arrayContainingUsers(2, 4),
+              ],
               page: {
                 number: 0,
                 size: 5,
@@ -83,8 +99,10 @@ describe('UserController (e2e)', () => {
     });
 
     it('should get the second page of 5 users', async () => {
-      const { accessToken } = await app.createAuthenticatedUser();
-      await app.createUsers(2, 10);
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
+      await app.createUsers(2, 10, UserRole.REGULAR_USER);
 
       return request(app.getHttpServer())
         .get('/users?page=1&size=5')
@@ -106,8 +124,26 @@ describe('UserController (e2e)', () => {
         });
     });
 
+    it('should fail to get a page of users when missing required authority', async () => {
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.REGULAR_USER,
+      );
+
+      return request(app.getHttpServer())
+        .get('/users')
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .expect(403)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 403,
+            message: 'Forbidden resource',
+          });
+        });
+    });
+
     it('should fail to get an page of users without an access token', async () => {
-      await app.createAuthenticatedUser();
+      await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
       return request(app.getHttpServer())
         .get('/users')
@@ -122,7 +158,10 @@ describe('UserController (e2e)', () => {
     });
 
     it('should fail to get an page of users with an expired access token', async () => {
-      const { accessToken } = await app.createAuthenticatedUser(true);
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+        true,
+      );
 
       return request(app.getHttpServer())
         .get('/users')
@@ -140,7 +179,9 @@ describe('UserController (e2e)', () => {
 
   describe('/users (POST)', () => {
     it('should create a new user', async () => {
-      const { accessToken } = await app.createAuthenticatedUser();
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
 
       return request(app.getHttpServer())
         .post('/users')
@@ -166,7 +207,9 @@ describe('UserController (e2e)', () => {
     });
 
     it('should fail to create a new user with a non unique username', async () => {
-      const { accessToken } = await app.createAuthenticatedUser();
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
 
       return request(app.getHttpServer())
         .post('/users')
@@ -193,7 +236,9 @@ describe('UserController (e2e)', () => {
     });
 
     it('should create a new user with a username equal to 2 characters', async () => {
-      const { accessToken } = await app.createAuthenticatedUser();
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
 
       return request(app.getHttpServer())
         .post('/users')
@@ -219,7 +264,9 @@ describe('UserController (e2e)', () => {
     });
 
     it('should fail to create a new user with a username shorter than 2 characters', async () => {
-      const { accessToken } = await app.createAuthenticatedUser();
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
 
       return request(app.getHttpServer())
         .post('/users')
@@ -249,7 +296,9 @@ describe('UserController (e2e)', () => {
     });
 
     it('should create a new user with a username equal to 20 characters', async () => {
-      const { accessToken } = await app.createAuthenticatedUser();
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
 
       return request(app.getHttpServer())
         .post('/users')
@@ -275,7 +324,9 @@ describe('UserController (e2e)', () => {
     });
 
     it('should fail to create a new user with a username longer than 20 characters', async () => {
-      const { accessToken } = await app.createAuthenticatedUser();
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
 
       return request(app.getHttpServer())
         .post('/users')
@@ -305,7 +356,9 @@ describe('UserController (e2e)', () => {
     });
 
     it('should fail to create a new user with an invalid email address', async () => {
-      const { accessToken } = await app.createAuthenticatedUser();
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
 
       return request(app.getHttpServer())
         .post('/users')
@@ -331,8 +384,31 @@ describe('UserController (e2e)', () => {
         });
     });
 
+    it('should fail to create a new user when missing required authority', async () => {
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.REGULAR_USER,
+      );
+
+      return request(app.getHttpServer())
+        .post('/users')
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          username: TestData.SecondaryUsername,
+          password: TestData.SecondaryPassword,
+          email: TestData.SecondaryEmail,
+        })
+        .expect(403)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 403,
+            message: 'Forbidden resource',
+          });
+        });
+    });
+
     it('should fail to create a new user without an access token', async () => {
-      await app.createAuthenticatedUser();
+      await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
       return request(app.getHttpServer())
         .post('/users')
@@ -352,7 +428,10 @@ describe('UserController (e2e)', () => {
     });
 
     it('should fail to create a new user with an expired access token', async () => {
-      const { accessToken } = await app.createAuthenticatedUser(true);
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+        true,
+      );
 
       return request(app.getHttpServer())
         .post('/users')
@@ -376,9 +455,9 @@ describe('UserController (e2e)', () => {
   describe('/users/:userId (GET)', () => {
     it('should get an existing user by id', async () => {
       const {
-        user: { id, username, email, createdAt, updatedAt },
+        user: { id, username, email, role, createdAt, updatedAt },
         accessToken,
-      } = await app.createAuthenticatedUser();
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
       return request(app.getHttpServer())
         .get('/users/' + id)
@@ -390,6 +469,7 @@ describe('UserController (e2e)', () => {
             id,
             username,
             email,
+            role,
             createdAt: createdAt.toISOString(),
             updatedAt: updatedAt.toISOString(),
           });
@@ -397,7 +477,9 @@ describe('UserController (e2e)', () => {
     });
 
     it('should fail to get a non existing user', async () => {
-      const { accessToken } = await app.createAuthenticatedUser();
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
 
       return request(app.getHttpServer())
         .get('/users/' + TestData.NonExistingUserId)
@@ -412,10 +494,29 @@ describe('UserController (e2e)', () => {
         });
     });
 
+    it('should fail to get an existing user by id when missing required authority', async () => {
+      const {
+        user: { id },
+        accessToken,
+      } = await app.createAuthenticatedUser(UserRole.REGULAR_USER);
+
+      return request(app.getHttpServer())
+        .get('/users/' + id)
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .expect(403)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 403,
+            message: 'Forbidden resource',
+          });
+        });
+    });
+
     it('should fail to get an existing user by id without an access token', async () => {
       const {
         user: { id },
-      } = await app.createAuthenticatedUser();
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
       return request(app.getHttpServer())
         .get('/users/' + id)
@@ -433,7 +534,7 @@ describe('UserController (e2e)', () => {
       const {
         user: { id },
         accessToken,
-      } = await app.createAuthenticatedUser(true);
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER, true);
 
       return request(app.getHttpServer())
         .get('/users/' + id)
@@ -454,7 +555,7 @@ describe('UserController (e2e)', () => {
       const {
         user: { id, createdAt },
         accessToken,
-      } = await app.createAuthenticatedUser();
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
       return request(app.getHttpServer())
         .put('/users/' + id)
@@ -482,7 +583,7 @@ describe('UserController (e2e)', () => {
       const {
         user: { id, username, createdAt },
         accessToken,
-      } = await app.createAuthenticatedUser();
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
       return request(app.getHttpServer())
         .put('/users/' + id)
@@ -507,7 +608,9 @@ describe('UserController (e2e)', () => {
     });
 
     it('should fail to update a non existing user', async () => {
-      const { accessToken } = await app.createAuthenticatedUser();
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
 
       return request(app.getHttpServer())
         .put('/users/' + TestData.NonExistingUserId)
@@ -530,9 +633,9 @@ describe('UserController (e2e)', () => {
       const {
         user: { username },
         accessToken,
-      } = await app.createAuthenticatedUser();
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
-      const { id } = await app.createUser(2);
+      const { id } = await app.createUser(2, UserRole.REGULAR_USER);
 
       return request(app.getHttpServer())
         .put('/users/' + id)
@@ -561,7 +664,7 @@ describe('UserController (e2e)', () => {
       const {
         user: { id },
         accessToken,
-      } = await app.createAuthenticatedUser();
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
       return request(app.getHttpServer())
         .put('/users/' + id)
@@ -586,10 +689,33 @@ describe('UserController (e2e)', () => {
         });
     });
 
+    it('should fail update an existing user when missing required authority', async () => {
+      const {
+        user: { id },
+        accessToken,
+      } = await app.createAuthenticatedUser(UserRole.REGULAR_USER);
+
+      return request(app.getHttpServer())
+        .put('/users/' + id)
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          username: TestData.SecondaryUsername,
+          email: TestData.SecondaryEmail,
+        })
+        .expect(403)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 403,
+            message: 'Forbidden resource',
+          });
+        });
+    });
+
     it('should fail update an existing user without an access token', async () => {
       const {
         user: { id },
-      } = await app.createAuthenticatedUser();
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
       return request(app.getHttpServer())
         .put('/users/' + id)
@@ -611,7 +737,7 @@ describe('UserController (e2e)', () => {
       const {
         user: { id },
         accessToken,
-      } = await app.createAuthenticatedUser(true);
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER, true);
 
       return request(app.getHttpServer())
         .put('/users/' + id)
@@ -636,7 +762,7 @@ describe('UserController (e2e)', () => {
       const {
         user: { id },
         accessToken,
-      } = await app.createAuthenticatedUser();
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
       return request(app.getHttpServer())
         .delete('/users/' + id)
@@ -648,7 +774,9 @@ describe('UserController (e2e)', () => {
     });
 
     it('should fail to delete a non existing user', async () => {
-      const { accessToken } = await app.createAuthenticatedUser();
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
 
       return request(app.getHttpServer())
         .delete('/users/' + TestData.NonExistingUserId)
@@ -663,10 +791,29 @@ describe('UserController (e2e)', () => {
         });
     });
 
-    it('should fail delete an existing user without an access token', async () => {
+    it('should fail to delete an existing user when missing required authority', async () => {
       const {
         user: { id },
-      } = await app.createAuthenticatedUser();
+        accessToken,
+      } = await app.createAuthenticatedUser(UserRole.REGULAR_USER);
+
+      return request(app.getHttpServer())
+        .delete('/users/' + id)
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .expect(403)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 403,
+            message: 'Forbidden resource',
+          });
+        });
+    });
+
+    it('should fail to delete an existing user without an access token', async () => {
+      const {
+        user: { id },
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
       return request(app.getHttpServer())
         .delete('/users/' + id)
@@ -680,11 +827,11 @@ describe('UserController (e2e)', () => {
         });
     });
 
-    it('should fail delete an existing user with an expired access token', async () => {
+    it('should fail to delete an existing user with an expired access token', async () => {
       const {
         user: { id },
         accessToken,
-      } = await app.createAuthenticatedUser(true);
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER, true);
 
       return request(app.getHttpServer())
         .delete('/users/' + id)
