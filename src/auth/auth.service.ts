@@ -12,7 +12,7 @@ export class AuthService {
 
   constructor(
     private jwtService: JwtService,
-    private usersRepository: UserRepository,
+    private userRepository: UserRepository,
   ) {}
 
   /**
@@ -87,7 +87,7 @@ export class AuthService {
     usernameOrEmail: string,
     password: string,
   ): Promise<UserEntity> {
-    const userEntity = await this.usersRepository.findOne({
+    const userEntity = await this.userRepository.findOne({
       where: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
     });
     if (!userEntity || !(await bcrypt.compare(password, userEntity.password))) {
@@ -144,7 +144,7 @@ export class AuthService {
     }
 
     try {
-      await this.usersRepository.findOneOrFail(userId);
+      await this.userRepository.findOneOrFail(userId);
     } catch (e) {
       throw new BadJwtException();
     }

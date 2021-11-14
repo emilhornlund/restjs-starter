@@ -12,7 +12,7 @@ import { UserConverter } from './converters';
 
 @Injectable()
 export class UserService {
-  constructor(private usersRepository: UserRepository) {}
+  constructor(private userRepository: UserRepository) {}
 
   /**
    * Get a single user by id.
@@ -35,7 +35,7 @@ export class UserService {
     pageSize: number,
   ): Promise<PagedUserDto> {
     const pageOffset = pageNumber * pageSize;
-    const [users, totalElements] = await this.usersRepository.findAndCount({
+    const [users, totalElements] = await this.userRepository.findAndCount({
       skip: pageOffset,
       take: pageSize,
     });
@@ -66,12 +66,12 @@ export class UserService {
     await this.verifyUsernameUnique(username);
     await this.verifyEmailUnique(email);
 
-    const entity = this.usersRepository.create();
+    const entity = this.userRepository.create();
     entity.username = username;
     entity.password = await bcrypt.hash(password, 10);
     entity.email = email;
 
-    const savedEntity = await this.usersRepository.save(entity);
+    const savedEntity = await this.userRepository.save(entity);
     return UserConverter.convertToUserDto(savedEntity);
   }
 
@@ -94,7 +94,7 @@ export class UserService {
     userEntity.username = username;
     userEntity.email = email;
 
-    const savedEntity = await this.usersRepository.save(userEntity);
+    const savedEntity = await this.userRepository.save(userEntity);
     return UserConverter.convertToUserDto(savedEntity);
   }
 
@@ -121,7 +121,7 @@ export class UserService {
 
     userEntity.password = await bcrypt.hash(newPassword, 10);
 
-    await this.usersRepository.save(userEntity);
+    await this.userRepository.save(userEntity);
   }
 
   /**
@@ -131,7 +131,7 @@ export class UserService {
    */
   public async deleteUser(userId: string): Promise<void> {
     const userEntity = await this.getUserEntityByIdOrThrow(userId);
-    await this.usersRepository.remove(userEntity);
+    await this.userRepository.remove(userEntity);
   }
 
   /**
@@ -140,7 +140,7 @@ export class UserService {
    * @param userId The user's id
    */
   private async getUserEntityByIdOrThrow(userId: string): Promise<UserEntity> {
-    const userEntity = await this.usersRepository.findOne(userId);
+    const userEntity = await this.userRepository.findOne(userId);
     if (!userEntity) {
       throw new UserNotFoundException(userId);
     }
@@ -154,7 +154,7 @@ export class UserService {
    * @private
    */
   private async verifyUsernameUnique(username: string, userId?: string) {
-    const userEntity = await this.usersRepository.findOne({
+    const userEntity = await this.userRepository.findOne({
       where: userId ? { id: Not(userId), username } : { username },
     });
     if (userEntity) {
@@ -169,7 +169,7 @@ export class UserService {
    * @private
    */
   private async verifyEmailUnique(email: string, userId?: string) {
-    const userEntity = await this.usersRepository.findOne({
+    const userEntity = await this.userRepository.findOne({
       where: userId ? { id: Not(userId), email } : { email },
     });
     if (userEntity) {
