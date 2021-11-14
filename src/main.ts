@@ -21,7 +21,8 @@ const applySwaggerConfig = (app: INestApplication) => {
     .setDescription('The File Buddy Service API')
     .setVersion('1.0')
     .addBearerAuth()
-    .addTag('auth', 'Authentication endpoints')
+    .addTag('Auth', 'Authentication endpoints')
+    .addTag('Me', 'Current user endpoints')
     .addTag('Users', 'Users endpoints')
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);

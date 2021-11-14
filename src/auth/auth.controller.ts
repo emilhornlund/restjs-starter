@@ -5,7 +5,7 @@ import { TokenAuthRequest, RefreshAuthRequest, TokenResponse } from './models';
 import { BadCredentialsException } from './exceptions';
 import { ApiTokenCreatedResponse, Public } from './decorators';
 
-@ApiTags('auth')
+@ApiTags('Auth')
 @Controller('/auth')
 export class AuthController {
   constructor(private authService: AuthService) {}

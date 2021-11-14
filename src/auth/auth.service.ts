@@ -98,7 +98,7 @@ export class AuthService {
 
   /**
    * Verifies the supplied access token and throws and unauthorized
-   * exception wheter the JWT is malformed or expired.
+   * exception whether the JWT is malformed or expired.
    *
    * @param accessToken The access token
    */
