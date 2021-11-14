@@ -1,6 +1,7 @@
 import * as request from 'supertest';
 import { Authorities } from '../src/auth';
 import { TestApplication } from './test-application';
+import { TestData } from './test-data';
 
 describe('AuthController (e2e)', () => {
   const app: TestApplication = new TestApplication();
@@ -14,10 +15,12 @@ describe('AuthController (e2e)', () => {
   });
 
   describe('/auth/token (POST)', () => {
-    it('should create both a new access and refresh token', async () => {
+    it('should issue both a new access and refresh token from a username and password', async () => {
+      const { username } = await app.createUser();
+
       return request(app.getHttpServer())
         .post('/auth/token')
-        .send({ username: 'test', password: 'pass' })
+        .send({ username, password: TestData.PrimaryPassword })
         .expect(201)
         .expect(({ body }) => {
           expect(body).toStrictEqual(
@@ -29,10 +32,71 @@ describe('AuthController (e2e)', () => {
         });
     });
 
-    it('should fail to create both new access and refresh token since wrong username and password', async () => {
+    it('should issue both a new access and refresh token from an email and password', async () => {
+      const { email } = await app.createUser();
+
       return request(app.getHttpServer())
         .post('/auth/token')
-        .send({ username: 'test2', password: 'pass2' })
+        .send({ username: email, password: TestData.PrimaryPassword })
+        .expect(201)
+        .expect(({ body }) => {
+          expect(body).toStrictEqual(
+            expect.objectContaining({
+              accessToken: expect.any(String),
+              refreshToken: expect.any(String),
+            }),
+          );
+        });
+    });
+
+    it('should fail to issue both new access and refresh token since wrong username', async () => {
+      await app.createUser();
+
+      return request(app.getHttpServer())
+        .post('/auth/token')
+        .send({
+          username: TestData.SecondaryUsername,
+          password: TestData.PrimaryPassword,
+        })
+        .expect(400)
+        .expect({ statusCode: 400, message: 'Bad credentials' });
+    });
+
+    it('should fail to issue both new access and refresh token since wrong email', async () => {
+      await app.createUser();
+
+      return request(app.getHttpServer())
+        .post('/auth/token')
+        .send({
+          username: TestData.SecondaryEmail,
+          password: TestData.PrimaryPassword,
+        })
+        .expect(400)
+        .expect({ statusCode: 400, message: 'Bad credentials' });
+    });
+
+    it('should fail to issue both new access and refresh token since wrong username or password', async () => {
+      await app.createUser();
+
+      return request(app.getHttpServer())
+        .post('/auth/token')
+        .send({
+          username: TestData.PrimaryUsername,
+          password: TestData.SecondaryPassword,
+        })
+        .expect(400)
+        .expect({ statusCode: 400, message: 'Bad credentials' });
+    });
+
+    it('should fail to issue both new access and refresh token since wrong email or password', async () => {
+      await app.createUser();
+
+      return request(app.getHttpServer())
+        .post('/auth/token')
+        .send({
+          username: TestData.PrimaryEmail,
+          password: TestData.SecondaryPassword,
+        })
         .expect(400)
         .expect({ statusCode: 400, message: 'Bad credentials' });
     });
@@ -40,9 +104,10 @@ describe('AuthController (e2e)', () => {
 
   describe('/auth/refresh (POST)', () => {
     it('should refresh authentication using an existing token and then issue new', async () => {
+      const { id } = await app.createUser();
       const refreshToken = await app.signJwt(
         {
-          userId: '7bda9f39-8864-4ebb-a8ff-795d371baf56',
+          userId: id,
           authorities: [Authorities.REFRESH_TOKEN],
         },
         { expiresIn: 30 },
@@ -63,6 +128,8 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should fail to refresh authentication using an invalid JWT', async () => {
+      await app.createUser();
+
       return request(app.getHttpServer())
         .post('/auth/refresh')
         .send({ refreshToken: 'notAValidRefreshToken' })
@@ -71,9 +138,10 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should fail to refresh authentication without correct refresh authority', async () => {
+      const { id } = await app.createUser();
       const refreshToken = await app.signJwt(
         {
-          userId: '7bda9f39-8864-4ebb-a8ff-795d371baf56',
+          userId: id,
           authorities: [],
         },
         { expiresIn: 30 },
@@ -87,9 +155,10 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should fail to refresh authentication without an valid userId', async () => {
+      await app.createUser();
       const refreshToken = await app.signJwt(
         {
-          userId: 'f3867046-0ff4-4652-9a65-62e4e9ac4fcf',
+          userId: TestData.NonExistingUserId,
           authorities: [Authorities.REFRESH_TOKEN],
         },
         { expiresIn: 30 },
@@ -103,9 +172,10 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should fail to refresh authentication with an expired refresh token', async () => {
+      const { id } = await app.createUser();
       const refreshToken = await app.signJwt(
         {
-          userId: '7bda9f39-8864-4ebb-a8ff-795d371baf56',
+          userId: id,
           authorities: [Authorities.REFRESH_TOKEN],
         },
         { expiresIn: -30 },

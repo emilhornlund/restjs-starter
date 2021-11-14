@@ -2,14 +2,18 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Authorities, JwtPayloadDto, TokenDto } from './models';
 import { BadCredentialsException, BadJwtException } from './exceptions';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import { UserEntity, UserRepository } from '../user';
 
 @Injectable()
 export class AuthService {
   private static ACCESS_TOKEN_EXPIRES_IN = 60 * 15; //15min
   private static REFRESH_TOKEN_EXPIRES_IN = 60 * 60 * 24; //24hours
-  private static MOCK_USER_ID = '7bda9f39-8864-4ebb-a8ff-795d371baf56';
 
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private jwtService: JwtService,
+    private usersRepository: UserRepository,
+  ) {}
 
   /**
    * Creates a new JWT pair after verifying the supplied username and password.
@@ -21,10 +25,10 @@ export class AuthService {
     username: string,
     password: string,
   ): Promise<TokenDto> {
-    await AuthService.verifyCredentials(username, password);
+    const { id } = await this.verifyCredentials(username, password);
 
-    const accessToken = await this.signAccessToken(AuthService.MOCK_USER_ID);
-    const refreshToken = await this.signRefreshToken(AuthService.MOCK_USER_ID);
+    const accessToken = await this.signAccessToken(id);
+    const refreshToken = await this.signRefreshToken(id);
 
     return { accessToken, refreshToken };
   }
@@ -53,7 +57,7 @@ export class AuthService {
    */
   private signAccessToken(userId: string): Promise<string> {
     return this.jwtService.signAsync(
-      { userId },
+      { userId, authorities: [] },
       { expiresIn: AuthService.ACCESS_TOKEN_EXPIRES_IN },
     );
   }
@@ -72,19 +76,24 @@ export class AuthService {
   }
 
   /**
-   * Verifies the supplied username and password and throws a
+   * Verifies the supplied username or email and password and throws a
    * BadCredentialsException if they don't match.
    *
-   * @param username The user's username
+   * @param usernameOrEmail The user's username or email
    * @param password The user's password
    * @private
    */
-  private static async verifyCredentials(
-    username: string,
+  private async verifyCredentials(
+    usernameOrEmail: string,
     password: string,
-  ): Promise<void | BadCredentialsException> {
-    if (username !== 'test' || password !== 'pass')
+  ): Promise<UserEntity> {
+    const userEntity = await this.usersRepository.findOne({
+      where: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
+    });
+    if (!userEntity || !(await bcrypt.compare(password, userEntity.password))) {
       throw new BadCredentialsException();
+    }
+    return userEntity;
   }
 
   /**
@@ -95,26 +104,33 @@ export class AuthService {
    * @param refreshToken The refresh token
    * @private
    */
-  private verifyRefreshToken(refreshToken: string): Promise<JwtPayloadDto> {
+  private async verifyRefreshToken(
+    refreshToken: string,
+  ): Promise<JwtPayloadDto> {
     let payload: JwtPayloadDto;
 
     try {
-      payload = this.jwtService.verify<JwtPayloadDto>(refreshToken);
+      payload = await this.jwtService.verifyAsync<JwtPayloadDto>(refreshToken);
     } catch (e) {
       throw new UnauthorizedException();
     }
 
-    if (!payload.userId || payload.userId !== AuthService.MOCK_USER_ID) {
-      return Promise.reject(new BadJwtException());
-    }
+    const { userId, authorities } = payload;
 
     if (
-      !payload.authorities ||
-      !payload.authorities.includes(Authorities.REFRESH_TOKEN)
+      !userId ||
+      !authorities ||
+      !authorities.includes(Authorities.REFRESH_TOKEN)
     ) {
-      return Promise.reject(new BadJwtException());
+      throw new BadJwtException();
     }
 
-    return Promise.resolve(payload);
+    try {
+      await this.usersRepository.findOneOrFail(userId);
+    } catch (e) {
+      throw new BadJwtException();
+    }
+
+    return payload;
   }
 }
