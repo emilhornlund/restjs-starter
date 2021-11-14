@@ -1,8 +1,20 @@
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Controller, Get, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiNoContentResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Patch,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiUserNotFoundResponse, ApiUserOkResponse } from './decorators';
-import { UserResponse } from './models';
+import { PatchUserPasswordRequest, UserResponse } from './models';
 import { UserConverter } from './converters';
 import { CurrentUserParam } from '../auth/decorators';
 
@@ -27,5 +39,24 @@ export class CurrentUserController {
     return this.userService
       .getUser(userId)
       .then(UserConverter.convertToUserResponse);
+  }
+
+  @Patch('/password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: "Update the current authenticated user's password",
+    description: "Update the current authenticated user's password",
+  })
+  @ApiNoContentResponse({ description: 'No Content' })
+  @ApiUserNotFoundResponse()
+  public updateCurrentUserPassword(
+    @CurrentUserParam('userId') userId: string,
+    @Body() patchUserPasswordRequest: PatchUserPasswordRequest,
+  ) {
+    return this.userService.updateUserPassword(
+      userId,
+      patchUserPasswordRequest.oldPassword,
+      patchUserPasswordRequest.newPassword,
+    );
   }
 }

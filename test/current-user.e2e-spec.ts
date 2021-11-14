@@ -89,4 +89,81 @@ describe('CurrentUserController (e2e)', () => {
         });
     });
   });
+
+  describe('/me/password (PATCH)', () => {
+    it("should update the currently authenticated user's password", async () => {
+      const { accessToken } = await app.createAuthenticatedUser();
+
+      return request(app.getHttpServer())
+        .patch('/me/password')
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          oldPassword: TestData.PrimaryPassword,
+          newPassword: TestData.SecondaryPassword,
+        })
+        .expect(204)
+        .expect(({ body }) => {
+          expect(body).toBeEmpty();
+        });
+    });
+
+    it("should fail update the currently authenticated user's password with an incorrect old password", async () => {
+      const { accessToken } = await app.createAuthenticatedUser();
+
+      return request(app.getHttpServer())
+        .patch('/me/password')
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          oldPassword: TestData.SecondaryPassword,
+          newPassword: TestData.PrimaryPassword,
+        })
+        .expect(400)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 400,
+            message: 'Incorrect old password',
+          });
+        });
+    });
+
+    it("should fail to update the currently authenticated user's password without an access token", async () => {
+      await app.createAuthenticatedUser();
+
+      return request(app.getHttpServer())
+        .patch('/me/password')
+        .send({
+          oldPassword: TestData.PrimaryPassword,
+          newPassword: TestData.SecondaryPassword,
+        })
+        .expect(401)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+        });
+    });
+
+    it("should fail to update the currently authenticated user's password with an expired access token", async () => {
+      const { accessToken } = await app.createAuthenticatedUser(true);
+
+      return request(app.getHttpServer())
+        .patch('/me/password')
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          oldPassword: TestData.PrimaryPassword,
+          newPassword: TestData.SecondaryPassword,
+        })
+        .expect(401)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+        });
+    });
+  });
 });
