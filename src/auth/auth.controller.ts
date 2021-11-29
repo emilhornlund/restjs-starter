@@ -1,9 +1,9 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { TokenAuthRequest, RefreshAuthRequest, TokenResponse } from './models';
-import { BadCredentialsException } from './exceptions';
 import { ApiTokenCreatedResponse, Public } from './decorators';
+import { ApiValidationFailedResponse } from '../common/decorators/api/api-response.decorator';
 
 @ApiTags('Auth')
 @Controller('/auth')
@@ -14,10 +14,7 @@ export class AuthController {
   @Post('/token')
   @HttpCode(HttpStatus.CREATED)
   @ApiTokenCreatedResponse()
-  @ApiBadRequestResponse({
-    description: BadCredentialsException.name,
-    type: BadCredentialsException,
-  })
+  @ApiValidationFailedResponse()
   public createToken(
     @Body() credentialsAuthRequest: TokenAuthRequest,
   ): Promise<TokenResponse> {

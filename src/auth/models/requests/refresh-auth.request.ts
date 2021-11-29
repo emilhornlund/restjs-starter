@@ -5,6 +5,7 @@ export class RefreshAuthRequest {
     title: 'Refresh Token',
     description:
       'The refresh token used to exchange a new token pair after its expiration.',
+    example: 'Bearer XXX',
   })
   refreshToken: string;
 }

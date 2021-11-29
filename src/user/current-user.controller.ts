@@ -17,6 +17,10 @@ import { ApiUserNotFoundResponse, ApiUserOkResponse } from './decorators';
 import { PatchUserPasswordRequest, UserResponse } from './models';
 import { UserConverter } from './converters';
 import { CurrentUserParam } from '../auth/decorators';
+import {
+  ApiUnauthorizedResponse,
+  ApiValidationFailedResponse,
+} from '../common/decorators/api/api-response.decorator';
 
 @ApiBearerAuth()
 @ApiTags('Me')
@@ -32,6 +36,7 @@ export class CurrentUserController {
       'Get the information of the current authenticated user by its access token.',
   })
   @ApiUserOkResponse()
+  @ApiUnauthorizedResponse()
   @ApiUserNotFoundResponse()
   public findCurrentUser(
     @CurrentUserParam('userId') userId: string,
@@ -48,6 +53,8 @@ export class CurrentUserController {
     description: "Update the current authenticated user's password",
   })
   @ApiNoContentResponse({ description: 'No Content' })
+  @ApiValidationFailedResponse()
+  @ApiUnauthorizedResponse()
   @ApiUserNotFoundResponse()
   public updateCurrentUserPassword(
     @CurrentUserParam('userId') userId: string,
