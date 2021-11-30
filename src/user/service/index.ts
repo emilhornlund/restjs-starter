@@ -1,14 +1,14 @@
 // -------------------------------------------------------------------------
 // Exceptions
 // -------------------------------------------------------------------------
-export * from './exceptions/email-unique-constraint.exception';
-export * from './exceptions/user-authority-name-unique-constraint.exception';
-export * from './exceptions/user-authority-not-found.exception';
-export * from './exceptions/user-not-found.exception';
-export * from './exceptions/user-not-found-by-username-or-password.exception';
-export * from './exceptions/user-role-name-unique-constraint.exception';
-export * from './exceptions/user-role-not-found.exception';
-export * from './exceptions/username-unique-constraint.exception';
+export * from './exception/email-unique-constraint.exception';
+export * from './exception/user-authority-name-unique-constraint.exception';
+export * from './exception/user-authority-not-found.exception';
+export * from './exception/user-not-found.exception';
+export * from './exception/user-not-found-by-username-or-password.exception';
+export * from './exception/user-role-name-unique-constraint.exception';
+export * from './exception/user-role-not-found.exception';
+export * from './exception/username-unique-constraint.exception';
 
 // -------------------------------------------------------------------------
 // DTOs

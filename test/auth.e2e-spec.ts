@@ -6,7 +6,7 @@ import {
   UserRole,
   UserRoleAuthority,
 } from '../src/user/service';
-import { JwtPayloadDto } from '../src/auth';
+import { JwtPayloadDto } from '../src/auth/service';
 
 describe('AuthController (e2e)', () => {
   const app: TestApplication = new TestApplication();

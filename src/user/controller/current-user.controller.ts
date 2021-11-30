@@ -19,7 +19,7 @@ import {
 } from './decorator/api-user.decorator';
 import { UserResponse } from './model/response/user.response';
 import { PatchUserPasswordRequest } from './model/request/patch-user-password.request';
-import { CurrentUserParam } from '../../auth/decorators';
+import { CurrentUserParam } from '../../auth/controller';
 import {
   ApiUnauthorizedResponse,
   ApiValidationFailedResponse,

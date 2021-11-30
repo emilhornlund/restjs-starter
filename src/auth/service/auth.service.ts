@@ -1,8 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtPayloadDto, TokenDto } from './models';
-import { BadCredentialsException, BadJwtException } from './exceptions';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { TokenDto } from './model/token-dto.interface';
+import { BadCredentialsException } from './exception/bad-credentials.exception';
+import { JwtPayloadDto } from './model/jwt-payload-dto.interface';
+import { BadJwtException } from './exception/bad-jwt.exception';
 import {
   UserAuthority,
   UserNotFoundByUsernameOrPasswordException,
@@ -10,7 +12,7 @@ import {
   UserRole,
   UserRoleAuthority,
   UserService,
-} from '../user/service';
+} from '../../user/service';
 
 @Injectable()
 export class AuthService {

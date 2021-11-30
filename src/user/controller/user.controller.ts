@@ -35,7 +35,7 @@ import {
   ApiPageableQueryParam,
   PageableQueryParam,
 } from '../../common/decorators';
-import { HasUserAuthority } from '../../auth/decorators/has-authority.decorator';
+import { HasUserAuthority } from '../../auth/controller/decorator/has-authority.decorator';
 import {
   ApiUnauthorizedResponse,
   ApiValidationFailedResponse,

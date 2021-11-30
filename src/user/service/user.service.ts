@@ -5,10 +5,10 @@ import { PageableDto } from '../../common';
 import { UserDto } from './model/user-dto.interface';
 import { UserRole } from './model/user-role.enum';
 import { UserEntity, UserRepository } from '../repository';
-import { UserNotFoundException } from './exceptions/user-not-found.exception';
-import { UsernameUniqueConstraintException } from './exceptions/username-unique-constraint.exception';
-import { EmailUniqueConstraintException } from './exceptions/email-unique-constraint.exception';
-import { UserNotFoundByUsernameOrPasswordException } from './exceptions/user-not-found-by-username-or-password.exception';
+import { UserNotFoundException } from './exception/user-not-found.exception';
+import { UsernameUniqueConstraintException } from './exception/username-unique-constraint.exception';
+import { EmailUniqueConstraintException } from './exception/email-unique-constraint.exception';
+import { UserNotFoundByUsernameOrPasswordException } from './exception/user-not-found-by-username-or-password.exception';
 
 @Injectable()
 export class UserService {

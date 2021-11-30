@@ -3,8 +3,8 @@ import { Not } from 'typeorm';
 import { UserRoleEntity, UserRoleRepository } from '../repository';
 import { PageableDto } from '../../common';
 import { UserRoleDto } from './model/user-role.dto';
-import { UserRoleNotFoundException } from './exceptions/user-role-not-found.exception';
-import { UserRoleNameUniqueConstraintException } from './exceptions/user-role-name-unique-constraint.exception';
+import { UserRoleNotFoundException } from './exception/user-role-not-found.exception';
+import { UserRoleNameUniqueConstraintException } from './exception/user-role-name-unique-constraint.exception';
 
 @Injectable()
 export class UserRoleService {

@@ -28,7 +28,7 @@ import {
   ApiUnauthorizedResponse,
   ApiValidationFailedResponse,
 } from '../../common/decorators/api/api-response.decorator';
-import { HasUserAuthority } from '../../auth/decorators/has-authority.decorator';
+import { HasUserAuthority } from '../../auth/controller/decorator/has-authority.decorator';
 import { PageableDto, PageableRequest } from '../../common';
 import { UserAuthorityResponse } from './model/response/user-authority.response';
 import { PagedUserAuthorityResponse } from './model/response/paged-user-authority.response';

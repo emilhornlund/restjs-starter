@@ -1,9 +1,12 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { AuthService } from './auth.service';
-import { TokenAuthRequest, RefreshAuthRequest, TokenResponse } from './models';
-import { ApiTokenCreatedResponse, Public } from './decorators';
-import { ApiValidationFailedResponse } from '../common/decorators/api/api-response.decorator';
+import { AuthService } from '../service';
+import { TokenAuthRequest } from './model/request/token-auth.request';
+import { TokenResponse } from './model/response/token.response';
+import { RefreshAuthRequest } from './model/request/refresh-auth.request';
+import { ApiValidationFailedResponse } from '../../common/decorators/api/api-response.decorator';
+import { Public } from './decorator/is-public.decorator';
+import { ApiTokenCreatedResponse } from './decorator/api-token-created-response.decorator';
 
 @ApiTags('Auth')
 @Controller('/auth')

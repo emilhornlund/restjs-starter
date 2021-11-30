@@ -9,7 +9,7 @@ import {
   UserRoleAuthority,
   UserService,
 } from '../src/user/service';
-import { JwtPayloadDto } from '../src/auth';
+import { JwtPayloadDto } from '../src/auth/service';
 import { TestData } from './test-data';
 
 export interface AuthenticatedUserDto {
