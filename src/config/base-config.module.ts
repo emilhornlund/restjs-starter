@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
-import { BaseConfigService } from './base-config.service';
+import { BaseConfigService, Environments } from './service';
 import configuration from './configuration';
-import { Environments } from './models';
 
 const DefaultEnvironment = Environments.DEVELOPMENT;
 

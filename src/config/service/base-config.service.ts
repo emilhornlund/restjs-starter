@@ -5,7 +5,7 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm/dist/interfaces/typeorm-op
 import * as fs from 'fs';
 import { resolve } from 'path';
 import { Algorithm } from 'jsonwebtoken';
-import { DatabaseConfig, Environments, HttpConfig, JwtConfig } from './models';
+import { DatabaseConfig, Environments, HttpConfig, JwtConfig } from './index';
 
 @Injectable()
 export class BaseConfigService {

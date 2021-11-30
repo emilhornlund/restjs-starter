@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
-import { BaseConfigModule, BaseConfigService } from '../config';
+import { BaseConfigModule } from '../config/base-config.module';
+import { BaseConfigService } from '../config/service';
 import { UserModule } from '../user/user.module';
 import { AuthController, JwtGuard, UserAuthorityGuard } from './controller';
 import { AuthService } from './service';
