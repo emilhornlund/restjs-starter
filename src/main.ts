@@ -24,6 +24,8 @@ const applySwaggerConfig = (app: INestApplication) => {
     .addTag('Auth', 'Authentication endpoints')
     .addTag('Me', 'Current user endpoints')
     .addTag('Users', 'Users endpoints')
+    .addTag('User Roles', 'User roles endpoints')
+    .addTag('User Authorities', 'User authorities endpoints')
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api_docs', app, document);
