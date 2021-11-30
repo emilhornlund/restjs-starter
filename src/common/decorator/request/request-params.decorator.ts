@@ -3,7 +3,7 @@ import {
   createParamDecorator,
   ExecutionContext,
 } from '@nestjs/common';
-import { PageableRequest } from '../../models';
+import { PageableRequest } from '../../model';
 
 const _parseInt = (value) => {
   const val = parseInt(value, 10);

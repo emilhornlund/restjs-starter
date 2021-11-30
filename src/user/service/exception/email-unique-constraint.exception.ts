@@ -1,4 +1,4 @@
-import { ValidationFailedException } from '../../../common';
+import { ValidationFailedException } from '../../../common/exception';
 
 export class EmailUniqueConstraintException extends ValidationFailedException {
   constructor(field?: string) {

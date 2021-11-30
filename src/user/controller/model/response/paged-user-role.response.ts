@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PageResponse } from '../../../../common';
+import { PageResponse } from '../../../../common/model';
 import { UserRoleResponse } from './user-role.response';
 
 export class PagedUserRoleResponse {

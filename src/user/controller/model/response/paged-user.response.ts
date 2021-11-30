@@ -1,6 +1,6 @@
-import { PageResponse } from '../../../../common';
-import { UserResponse } from './user.response';
 import { ApiProperty } from '@nestjs/swagger';
+import { PageResponse } from '../../../../common/model';
+import { UserResponse } from './user.response';
 
 export class PagedUserResponse {
   @ApiProperty({

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
-import { HttpExceptionFilter } from './filters';
-import { ValidationPipe } from './pipes';
+import { HttpExceptionFilter } from './filter';
+import { ValidationPipe } from './pipe';
 
 @Module({
   controllers: [],

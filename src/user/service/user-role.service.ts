@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Not } from 'typeorm';
 import { UserRoleEntity, UserRoleRepository } from '../repository';
-import { PageableDto } from '../../common';
+import { PageableDto } from '../../common/model';
 import { UserRoleDto } from './model/user-role.dto';
 import { UserRoleNotFoundException } from './exception/user-role-not-found.exception';
 import { UserRoleNameUniqueConstraintException } from './exception/user-role-name-unique-constraint.exception';

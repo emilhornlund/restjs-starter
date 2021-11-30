@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Not } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { PageableDto } from '../../common';
+import { PageableDto } from '../../common/model';
 import { UserDto } from './model/user-dto.interface';
 import { UserRole } from './model/user-role.enum';
 import { UserEntity, UserRepository } from '../repository';

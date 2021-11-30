@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Not } from 'typeorm';
 import { UserAuthorityEntity, UserAuthorityRepository } from '../repository';
-import { PageableDto } from '../../common';
+import { PageableDto } from '../../common/model';
 import { UserAuthorityDto } from './model/user-authority.dto';
 import { UserAuthorityNotFoundException } from './exception/user-authority-not-found.exception';
 import { UserAuthorityNameUniqueConstraintException } from './exception/user-authority-name-unique-constraint.exception';

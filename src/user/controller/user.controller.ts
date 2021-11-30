@@ -30,16 +30,16 @@ import {
   UserIdParam,
   UserIdParamKey,
 } from './decorator/user-id-param.decorator';
-import { PageableDto, PageableRequest } from '../../common';
+import { PageableDto, PageableRequest } from '../../common/model';
 import {
   ApiPageableQueryParam,
   PageableQueryParam,
-} from '../../common/decorators';
+} from '../../common/decorator';
 import { HasUserAuthority } from '../../auth/controller/decorator/has-authority.decorator';
 import {
   ApiUnauthorizedResponse,
   ApiValidationFailedResponse,
-} from '../../common/decorators/api/api-response.decorator';
+} from '../../common/decorator/api/api-response.decorator';
 
 @ApiBearerAuth()
 @ApiTags('Users')

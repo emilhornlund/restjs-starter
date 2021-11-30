@@ -4,7 +4,7 @@ import { AuthService } from '../service';
 import { TokenAuthRequest } from './model/request/token-auth.request';
 import { TokenResponse } from './model/response/token.response';
 import { RefreshAuthRequest } from './model/request/refresh-auth.request';
-import { ApiValidationFailedResponse } from '../../common/decorators/api/api-response.decorator';
+import { ApiValidationFailedResponse } from '../../common/decorator/api/api-response.decorator';
 import { Public } from './decorator/is-public.decorator';
 import { ApiTokenCreatedResponse } from './decorator/api-token-created-response.decorator';
 

@@ -23,7 +23,7 @@ import { CurrentUserParam } from '../../auth/controller';
 import {
   ApiUnauthorizedResponse,
   ApiValidationFailedResponse,
-} from '../../common/decorators/api/api-response.decorator';
+} from '../../common/decorator/api/api-response.decorator';
 
 @ApiBearerAuth()
 @ApiTags('Me')
