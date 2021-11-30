@@ -1,4 +1,4 @@
-import { UserAuthority, UserRole } from '../../../user';
+import { UserAuthority, UserRole } from '../../../user/service';
 
 export interface JwtPayloadDto {
   userId: string;

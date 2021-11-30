@@ -1,7 +1,11 @@
 import * as request from 'supertest';
 import { TestApplication } from './test-application';
 import { TestData } from './test-data';
-import { UserAuthority, UserRole, UserRoleAuthority } from '../src/user';
+import {
+  UserAuthority,
+  UserRole,
+  UserRoleAuthority,
+} from '../src/user/service';
 import { JwtPayloadDto } from '../src/auth';
 
 describe('AuthController (e2e)', () => {
@@ -247,10 +251,10 @@ describe('AuthController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/auth/refresh')
         .send({ refreshToken })
-        .expect(404)
+        .expect(400)
         .expect({
-          statusCode: 404,
-          message: `User with id \`${TestData.NonExistingUserId}\` was not found.`,
+          statusCode: 400,
+          message: 'Bad jwt',
         });
     });
 

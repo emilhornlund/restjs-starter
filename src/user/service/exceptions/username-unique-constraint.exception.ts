@@ -1,4 +1,4 @@
-import { ValidationFailedException } from '../../common';
+import { ValidationFailedException } from '../../../common';
 
 export class UsernameUniqueConstraintException extends ValidationFailedException {
   constructor(field?: string) {

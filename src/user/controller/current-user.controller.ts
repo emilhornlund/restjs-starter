@@ -12,15 +12,18 @@ import {
   HttpStatus,
   Patch,
 } from '@nestjs/common';
-import { UserService } from './user.service';
-import { ApiUserNotFoundResponse, ApiUserOkResponse } from './decorators';
-import { PatchUserPasswordRequest, UserResponse } from './models';
-import { UserConverter } from './converters';
-import { CurrentUserParam } from '../auth/decorators';
+import { UserDto, UserService } from '../service';
+import {
+  ApiUserNotFoundResponse,
+  ApiUserOkResponse,
+} from './decorator/api-user.decorator';
+import { UserResponse } from './model/response/user.response';
+import { PatchUserPasswordRequest } from './model/request/patch-user-password.request';
+import { CurrentUserParam } from '../../auth/decorators';
 import {
   ApiUnauthorizedResponse,
   ApiValidationFailedResponse,
-} from '../common/decorators/api/api-response.decorator';
+} from '../../common/decorators/api/api-response.decorator';
 
 @ApiBearerAuth()
 @ApiTags('Me')
@@ -43,7 +46,7 @@ export class CurrentUserController {
   ): Promise<UserResponse> {
     return this.userService
       .getUser(userId)
-      .then(UserConverter.convertToUserResponse);
+      .then(CurrentUserController.toUserResponse);
   }
 
   @Patch('/password')
@@ -66,4 +69,18 @@ export class CurrentUserController {
       patchUserPasswordRequest.newPassword,
     );
   }
+
+  /**
+   * Convert an instance of a UserDto to UserResponse.
+   *
+   * @param userDto The UserDto instance
+   */
+  static toUserResponse = (userDto: UserDto): UserResponse => ({
+    id: userDto.id,
+    username: userDto.username,
+    email: userDto.email,
+    role: userDto.role,
+    createdAt: userDto.createdAt,
+    updatedAt: userDto.updatedAt,
+  });
 }

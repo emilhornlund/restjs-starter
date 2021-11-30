@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
-import { UserController } from './user.controller';
-import { UserService } from './user.service';
+import { UserController } from './controller/user.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserRepository } from './user.repository';
-import { CurrentUserController } from './current-user.controller';
+import { CurrentUserController } from './controller/current-user.controller';
 import { UserAuthorityController, UserRoleController } from './controller';
-import { UserAuthorityRepository, UserRoleRepository } from './repository';
-import { UserAuthorityService, UserRoleService } from './service';
+import {
+  UserAuthorityRepository,
+  UserRepository,
+  UserRoleRepository,
+} from './repository';
+import { UserAuthorityService, UserRoleService, UserService } from './service';
 
 @Module({
   imports: [
@@ -23,6 +25,6 @@ import { UserAuthorityService, UserRoleService } from './service';
     UserAuthorityController,
   ],
   providers: [UserService, UserRoleService, UserAuthorityService],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, UserService],
 })
 export class UserModule {}

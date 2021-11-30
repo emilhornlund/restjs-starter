@@ -1,4 +1,4 @@
-import { PageResponse } from '../../../common';
+import { PageResponse } from '../../../../common';
 import { UserResponse } from './user.response';
 import { ApiProperty } from '@nestjs/swagger';
 

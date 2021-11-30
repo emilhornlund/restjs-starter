@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UserRole } from '../dto';
+import { UserRole } from '../../service';
 
 @Entity('users')
 export class UserEntity {

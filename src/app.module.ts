@@ -3,7 +3,7 @@ import { BaseConfigModule, BaseConfigService } from './config';
 import { AuthModule } from './auth';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommonModule } from './common';
-import { UserModule } from './user';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [

@@ -1,7 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { USER_AUTHORITIES_KEY } from '../decorators/has-authority.decorator';
-import { UserAuthority } from '../../user';
+import { UserAuthority } from '../../user/service';
 
 @Injectable()
 export class UserAuthorityGuard implements CanActivate {

@@ -1,14 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Not } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { PagedUserDto, UserDto, UserEntity, UserRole } from './models';
-import { UserRepository } from './user.repository';
-import {
-  EmailUniqueConstraintException,
-  UsernameUniqueConstraintException,
-  UserNotFoundException,
-} from './exceptions';
-import { UserConverter } from './converters';
+import { PageableDto } from '../../common';
+import { UserDto } from './model/user-dto.interface';
+import { UserRole } from './model/user-role.enum';
+import { UserEntity, UserRepository } from '../repository';
+import { UserNotFoundException } from './exceptions/user-not-found.exception';
+import { UsernameUniqueConstraintException } from './exceptions/username-unique-constraint.exception';
+import { EmailUniqueConstraintException } from './exceptions/email-unique-constraint.exception';
+import { UserNotFoundByUsernameOrPasswordException } from './exceptions/user-not-found-by-username-or-password.exception';
 
 @Injectable()
 export class UserService {
@@ -21,7 +21,21 @@ export class UserService {
    */
   public async getUser(userId: string): Promise<UserDto> {
     const userEntity = await this.getUserEntityByIdOrThrow(userId);
-    return UserConverter.convertToUserDto(userEntity);
+    return UserService.toUserDto(userEntity);
+  }
+
+  /**
+   * Get a single user by username or email.
+   *
+   * @param usernameOrEmail The user's username or email
+   */
+  public async getUserByUsernameOrEmail(
+    usernameOrEmail: string,
+  ): Promise<UserDto> {
+    const userEntity = await this.getUserEntityByUsernameOrPasswordOrThrow(
+      usernameOrEmail,
+    );
+    return UserService.toUserDto(userEntity);
   }
 
   /**
@@ -33,7 +47,7 @@ export class UserService {
   public async getUsers(
     pageNumber: number,
     pageSize: number,
-  ): Promise<PagedUserDto> {
+  ): Promise<PageableDto<UserDto>> {
     const pageOffset = pageNumber * pageSize;
     const [users, totalElements] = await this.userRepository.findAndCount({
       skip: pageOffset,
@@ -41,7 +55,7 @@ export class UserService {
     });
 
     return {
-      users: users.map(UserConverter.convertToUserDto),
+      content: users.map(UserService.toUserDto),
       page: {
         number: pageNumber,
         size: pageSize,
@@ -75,7 +89,7 @@ export class UserService {
     entity.role = role;
 
     const savedEntity = await this.userRepository.save(entity);
-    return UserConverter.convertToUserDto(savedEntity);
+    return UserService.toUserDto(savedEntity);
   }
 
   /**
@@ -98,7 +112,7 @@ export class UserService {
     userEntity.email = email;
 
     const savedEntity = await this.userRepository.save(userEntity);
-    return UserConverter.convertToUserDto(savedEntity);
+    return UserService.toUserDto(savedEntity);
   }
 
   /**
@@ -138,6 +152,18 @@ export class UserService {
   }
 
   /**
+   * Get a user's hashed password.
+   *
+   * @param usernameOrEmail The user's username or email
+   */
+  public async getPasswordHash(usernameOrEmail: string): Promise<string> {
+    const userEntity = await this.getUserEntityByUsernameOrPasswordOrThrow(
+      usernameOrEmail,
+    );
+    return userEntity.password;
+  }
+
+  /**
    * Get a user entity by id or else throw exception.
    *
    * @param userId The user's id
@@ -151,9 +177,28 @@ export class UserService {
   }
 
   /**
+   * Get a user entity by username or email or else throw UserNotFoundByUsernameOrPasswordException.
    *
-   * @param username
-   * @param userId
+   * @param usernameOrEmail The user's username or email
+   * @private
+   */
+  private async getUserEntityByUsernameOrPasswordOrThrow(
+    usernameOrEmail: string,
+  ): Promise<UserEntity> {
+    const userEntity = await this.userRepository.findOne({
+      where: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
+    });
+    if (!userEntity) {
+      throw new UserNotFoundByUsernameOrPasswordException(usernameOrEmail);
+    }
+    return userEntity;
+  }
+
+  /**
+   * Verifies that the user's username is unique to all except current user.
+   *
+   * @param username The user's username
+   * @param userId The user's id
    * @private
    */
   private async verifyUsernameUnique(username: string, userId?: string) {
@@ -166,9 +211,10 @@ export class UserService {
   }
 
   /**
+   * Verifies that the user's email is unique to all except current user.
    *
-   * @param email
-   * @param userId
+   * @param email The user's email
+   * @param userId The user's id
    * @private
    */
   private async verifyEmailUnique(email: string, userId?: string) {
@@ -179,4 +225,18 @@ export class UserService {
       throw new EmailUniqueConstraintException();
     }
   }
+
+  /**
+   * Convert an instance of a UserEntity to UserDto.
+   *
+   * @param userEntity The UserEntity instance
+   */
+  static toUserDto = (userEntity: UserEntity): UserDto => ({
+    id: userEntity.id,
+    username: userEntity.username,
+    email: userEntity.email,
+    role: userEntity.role,
+    createdAt: userEntity.createdAt,
+    updatedAt: userEntity.updatedAt,
+  });
 }

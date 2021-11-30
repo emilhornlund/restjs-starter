@@ -3,7 +3,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Connection } from 'typeorm';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { AppModule } from '../src/app.module';
-import { UserDto, UserRole, UserRoleAuthority, UserService } from '../src/user';
+import {
+  UserDto,
+  UserRole,
+  UserRoleAuthority,
+  UserService,
+} from '../src/user/service';
 import { JwtPayloadDto } from '../src/auth';
 import { TestData } from './test-data';
 

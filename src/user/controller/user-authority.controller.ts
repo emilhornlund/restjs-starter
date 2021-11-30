@@ -15,7 +15,11 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import { UserAuthorityDto, UserAuthorityService } from '../service';
+import {
+  UserAuthority,
+  UserAuthorityDto,
+  UserAuthorityService,
+} from '../service';
 import {
   ApiPageableQueryParam,
   PageableQueryParam,
@@ -28,7 +32,6 @@ import { HasUserAuthority } from '../../auth/decorators/has-authority.decorator'
 import { PageableDto, PageableRequest } from '../../common';
 import { UserAuthorityResponse } from './model/response/user-authority.response';
 import { PagedUserAuthorityResponse } from './model/response/paged-user-authority.response';
-import { UserAuthority } from '../models';
 import {
   ApiUserAuthorityCreatedResponse,
   ApiUserAuthorityIdParam,

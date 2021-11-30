@@ -1,11 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserRole } from '../dto';
+import { UserRole } from '../../../service';
+import { ApiUserIdExample } from '../../constant/api-user.constants';
 
 export class UserResponse {
   @ApiProperty({
     title: 'User Id',
     description: '',
-    example: '7bda9f39-8864-4ebb-a8ff-795d371baf56',
+    example: ApiUserIdExample,
   })
   id: string;
 

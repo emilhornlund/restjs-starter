@@ -5,7 +5,8 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { UserIdParamKey } from './user-id-param.decorator';
-import { UserResponse } from '../models';
+import { UserResponse } from '../model/response/user.response';
+import { ApiUserIdExample } from '../constant/api-user.constants';
 
 export const ApiUserIdParam = () =>
   ApiParam({
@@ -13,7 +14,7 @@ export const ApiUserIdParam = () =>
     type: String,
     format: 'uuid',
     description: "The user's unique identifier",
-    example: '7bda9f39-8864-4ebb-a8ff-795d371baf56',
+    example: ApiUserIdExample,
   });
 
 const userResponseDescription = 'Information about the user.';
@@ -37,8 +38,7 @@ export const ApiUserNotFoundResponse = () =>
       type: 'object',
       example: {
         statusCode: 404,
-        message:
-          'User with id `7bda9f39-8864-4ebb-a8ff-795d371baf56` was not found.',
+        message: `User with id \`${ApiUserIdExample}\` was not found.`,
       },
     },
   });

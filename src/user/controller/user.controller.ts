@@ -15,33 +15,31 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import { UserService } from './user.service';
-import {
-  CreateUserRequest,
-  PagedUserResponse,
-  UpdateUserRequest,
-  UserAuthority,
-  UserResponse,
-} from './models';
+import { UserAuthority, UserDto, UserService } from '../service';
+import { PagedUserResponse } from './model/response/paged-user.response';
+import { CreateUserRequest } from './model/request/create-user.request';
+import { UserResponse } from './model/response/user.response';
+import { UpdateUserRequest } from './model/request/update-user.request';
 import {
   ApiUserCreatedResponse,
   ApiUserIdParam,
   ApiUserNotFoundResponse,
   ApiUserOkResponse,
+} from './decorator/api-user.decorator';
+import {
   UserIdParam,
   UserIdParamKey,
-} from './decorators';
-import { PageableRequest } from '../common';
-import { UserConverter } from './converters';
+} from './decorator/user-id-param.decorator';
+import { PageableDto, PageableRequest } from '../../common';
 import {
   ApiPageableQueryParam,
   PageableQueryParam,
-} from '../common/decorators';
-import { HasUserAuthority } from '../auth/decorators/has-authority.decorator';
+} from '../../common/decorators';
+import { HasUserAuthority } from '../../auth/decorators/has-authority.decorator';
 import {
   ApiUnauthorizedResponse,
   ApiValidationFailedResponse,
-} from '../common/decorators/api/api-response.decorator';
+} from '../../common/decorators/api/api-response.decorator';
 
 @ApiBearerAuth()
 @ApiTags('Users')
@@ -68,7 +66,7 @@ export class UserController {
   ): Promise<PagedUserResponse> {
     return this.userService
       .getUsers(pageable.page, pageable.size)
-      .then(UserConverter.convertToPagedUserResponse);
+      .then(UserController.toPagedUserResponse);
   }
 
   @Post()
@@ -90,7 +88,7 @@ export class UserController {
         createUserRequest.password,
         createUserRequest.email,
       )
-      .then(UserConverter.convertToUserResponse);
+      .then(UserController.toUserResponse);
   }
 
   @Get(`:${UserIdParamKey}`)
@@ -106,9 +104,7 @@ export class UserController {
   @ApiUserNotFoundResponse()
   @HasUserAuthority(UserAuthority.USER_ADMINISTRATION_READ)
   public findUser(@UserIdParam() userId: string): Promise<UserResponse> {
-    return this.userService
-      .getUser(userId)
-      .then(UserConverter.convertToUserResponse);
+    return this.userService.getUser(userId).then(UserController.toUserResponse);
   }
 
   @Put(`:${UserIdParamKey}`)
@@ -130,7 +126,7 @@ export class UserController {
   ): Promise<UserResponse> {
     return this.userService
       .updateUser(userId, updateUserRequest.username, updateUserRequest.email)
-      .then(UserConverter.convertToUserResponse);
+      .then(UserController.toUserResponse);
   }
 
   @Delete(`:${UserIdParamKey}`)
@@ -148,4 +144,30 @@ export class UserController {
   public deleteUser(@UserIdParam() userId: string) {
     return this.userService.deleteUser(userId);
   }
+
+  /**
+   * Convert an instance of a PageableUserDto to PagedUserResponse.
+   *
+   * @param pagedUserDto The PageableUserDto instance
+   */
+  static toPagedUserResponse = (
+    pagedUserDto: PageableDto<UserDto>,
+  ): PagedUserResponse => ({
+    users: pagedUserDto.content.map(UserController.toUserResponse),
+    page: pagedUserDto.page,
+  });
+
+  /**
+   * Convert an instance of a UserDto to UserResponse.
+   *
+   * @param userDto The UserDto instance
+   */
+  static toUserResponse = (userDto: UserDto): UserResponse => ({
+    id: userDto.id,
+    username: userDto.username,
+    email: userDto.email,
+    role: userDto.role,
+    createdAt: userDto.createdAt,
+    updatedAt: userDto.updatedAt,
+  });
 }

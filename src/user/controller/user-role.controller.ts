@@ -15,7 +15,7 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import { UserRoleDto, UserRoleService } from '../service';
+import { UserAuthority, UserRoleDto, UserRoleService } from '../service';
 import {
   ApiPageableQueryParam,
   PageableQueryParam,
@@ -28,7 +28,6 @@ import { HasUserAuthority } from '../../auth/decorators/has-authority.decorator'
 import { PageableDto, PageableRequest } from '../../common';
 import { UserRoleResponse } from './model/response/user-role.response';
 import { PagedUserRoleResponse } from './model/response/paged-user-role.response';
-import { UserAuthority } from '../models';
 import {
   ApiUserRoleCreatedResponse,
   ApiUserRoleIdParam,

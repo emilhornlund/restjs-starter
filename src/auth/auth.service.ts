@@ -5,12 +5,12 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import {
   UserAuthority,
-  UserEntity,
+  UserNotFoundByUsernameOrPasswordException,
   UserNotFoundException,
-  UserRepository,
   UserRole,
   UserRoleAuthority,
-} from '../user';
+  UserService,
+} from '../user/service';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +19,7 @@ export class AuthService {
 
   constructor(
     private jwtService: JwtService,
-    private userRepository: UserRepository,
+    private userService: UserService,
   ) {}
 
   /**
@@ -32,7 +32,10 @@ export class AuthService {
     username: string,
     password: string,
   ): Promise<TokenDto> {
-    const { id, role } = await this.verifyCredentials(username, password);
+    await this.verifyCredentials(username, password);
+    const { id, role } = await this.userService.getUserByUsernameOrEmail(
+      username,
+    );
 
     const accessToken = await this.signAccessToken(id, role);
     const refreshToken = await this.signRefreshToken(id, role);
@@ -50,7 +53,7 @@ export class AuthService {
   ): Promise<TokenDto> {
     const { userId } = await this.verifyRefreshToken(refreshToken);
 
-    const { role } = await this.getUserByIdOrThrow(userId);
+    const { role } = await this.userService.getUser(userId);
 
     const accessToken = await this.signAccessToken(userId, role);
     const newRefreshToken = await this.signRefreshToken(userId, role);
@@ -97,14 +100,21 @@ export class AuthService {
   private async verifyCredentials(
     usernameOrEmail: string,
     password: string,
-  ): Promise<UserEntity> {
-    const userEntity = await this.userRepository.findOne({
-      where: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
-    });
-    if (!userEntity || !(await bcrypt.compare(password, userEntity.password))) {
+  ): Promise<void> {
+    let passwordHash;
+
+    try {
+      passwordHash = await this.userService.getPasswordHash(usernameOrEmail);
+    } catch (e) {
+      if (e instanceof UserNotFoundByUsernameOrPasswordException) {
+        throw new BadCredentialsException();
+      }
+    }
+
+    const isMatch = await bcrypt.compare(password, passwordHash);
+    if (!isMatch) {
       throw new BadCredentialsException();
     }
-    return userEntity;
   }
 
   /**
@@ -154,20 +164,14 @@ export class AuthService {
       throw new BadJwtException();
     }
 
-    await this.getUserByIdOrThrow(userId);
-
-    return payload;
-  }
-
-  private async getUserByIdOrThrow(userId: string): Promise<UserEntity> {
-    let userEntity: UserEntity;
-
     try {
-      userEntity = await this.userRepository.findOneOrFail(userId);
+      await this.userService.getUser(userId);
     } catch (e) {
-      throw new UserNotFoundException(userId);
+      if (e instanceof UserNotFoundException) {
+        throw new BadJwtException();
+      }
     }
 
-    return userEntity;
+    return payload;
   }
 }
