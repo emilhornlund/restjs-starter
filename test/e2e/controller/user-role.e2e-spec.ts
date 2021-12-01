@@ -269,6 +269,8 @@ describe('UserRoleController (e2e)', () => {
               {
                 field: 'name',
                 constraints: {
+                  matches:
+                    'name can only contain uppercase letters and underscores',
                   minLength:
                     'name must be longer than or equal to 8 characters',
                 },
@@ -472,6 +474,8 @@ describe('UserRoleController (e2e)', () => {
               {
                 field: 'description',
                 constraints: {
+                  matches:
+                    'description must match /[\\w]{2,128}/ regular expression',
                   minLength:
                     'description must be longer than or equal to 2 characters',
                 },
@@ -945,6 +949,8 @@ describe('UserRoleController (e2e)', () => {
               {
                 field: 'name',
                 constraints: {
+                  matches:
+                    'name can only contain uppercase letters and underscores',
                   minLength:
                     'name must be longer than or equal to 8 characters',
                 },
@@ -1183,6 +1189,8 @@ describe('UserRoleController (e2e)', () => {
               {
                 field: 'description',
                 constraints: {
+                  matches:
+                    'description must match /[\\w]{2,128}/ regular expression',
                   minLength:
                     'description must be longer than or equal to 2 characters',
                 },

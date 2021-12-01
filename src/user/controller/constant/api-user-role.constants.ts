@@ -7,14 +7,14 @@ export const ApiUserRoleNameTitle = 'Name';
 export const ApiUserRoleNameDescription = 'Unique name belonging to a role.';
 export const ApiUserRoleNameMinLength = 8;
 export const ApiUserRoleNameMaxLength = 32;
-export const ApiUserRoleNamePattern = /[A-Z_]+/;
+export const ApiUserRoleNamePattern = /[A-Z_]{8,32}/;
 export const ApiUserRoleNameExample = 'REGULAR_USER';
 
 export const ApiUserRoleDescriptionTitle = 'Description';
 export const ApiUserRoleDescription = 'Description of the purpose of the role.';
 export const ApiUserRoleDescriptionMinLength = 2;
 export const ApiUserRoleDescriptionMaxLength = 128;
-export const ApiUserRoleDescriptionPattern = /[\w]+/;
+export const ApiUserRoleDescriptionPattern = /[\w]{2,128}/;
 export const ApiUserRoleDescriptionExample = ApiUserRoleDescription;
 
 export const ApiUserRoleCreatedAtTitle = 'Created At';
