@@ -20,7 +20,7 @@ export class UserRoleEntity {
   @Column({ nullable: true })
   description?: string;
 
-  @ManyToMany(() => UserAuthorityEntity)
+  @ManyToMany(() => UserAuthorityEntity, (authority) => authority.userRoles)
   @JoinTable()
   userAuthorities: UserAuthorityEntity[];
 
