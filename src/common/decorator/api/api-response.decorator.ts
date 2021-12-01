@@ -1,5 +1,6 @@
 import {
   ApiBadRequestResponse,
+  ApiForbiddenResponse as _ApiForbiddenResponse,
   ApiUnauthorizedResponse as _ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { HttpStatus } from '@nestjs/common';
@@ -37,6 +38,17 @@ export const ApiUnauthorizedResponse = () =>
       properties: {
         statusCode: { type: 'number', example: HttpStatus.UNAUTHORIZED },
         message: { type: 'string', example: 'Unauthorized' },
+      },
+    },
+  });
+
+export const ApiForbiddenResponse = () =>
+  _ApiForbiddenResponse({
+    description: 'Forbidden',
+    schema: {
+      properties: {
+        statusCode: { type: 'number', example: HttpStatus.FORBIDDEN },
+        message: { type: 'string', example: 'Forbidden resource' },
       },
     },
   });

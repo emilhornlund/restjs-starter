@@ -54,7 +54,7 @@ export class UserRoleService {
    */
   public async createUserRole(
     name: string,
-    description: string,
+    description?: string,
   ): Promise<UserRoleDto> {
     await this.verifyUserRoleNameUnique(name);
 
@@ -76,7 +76,7 @@ export class UserRoleService {
   public async updateUserRole(
     userRoleId: string,
     name: string,
-    description: string,
+    description?: string,
   ): Promise<UserRoleDto> {
     await this.verifyUserRoleNameUnique(name, userRoleId);
 

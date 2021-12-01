@@ -7,6 +7,8 @@ import {
   UserDto,
   UserRole,
   UserRoleAuthority,
+  UserRoleDto,
+  UserRoleService,
   UserService,
 } from '../src/user/service';
 import { JwtPayloadDto } from '../src/auth/service';
@@ -80,6 +82,27 @@ export class TestApplication {
         TestData.PrimaryPassword,
         TestData.Email(i),
         role,
+      );
+    }
+  }
+
+  async createUserRole(
+    name: string,
+    description: string,
+  ): Promise<UserRoleDto> {
+    return this.app
+      .get<UserRoleService>(UserRoleService)
+      .createUserRole(name, description);
+  }
+
+  async createUserRoles(from: number, count: number) {
+    const userRoleService = await this.app.get<UserRoleService>(
+      UserRoleService,
+    );
+    for (let i = from; i < from + count; i++) {
+      await userRoleService.createUserRole(
+        `${TestData.UserRole.NamePrefix}_${i}`,
+        TestData.UserRole.PrimaryDescription,
       );
     }
   }

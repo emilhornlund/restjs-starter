@@ -1,39 +1,59 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ApiUserRoleIdExample } from '../../constant/api-user-role.constants';
+import {
+  ApiUserRoleIdExample,
+  ApiUserRoleDescriptionExample,
+  ApiUserRoleNameExample,
+  ApiUserRoleNameDescription,
+  ApiUserRoleNameTitle,
+  ApiUserRoleDescriptionTitle,
+  ApiUserRoleDescription,
+  ApiUserRoleIdTitle,
+  ApiUserRoleIdDescription,
+  ApiUserRoleCreatedAtTitle,
+  ApiUserRoleCreatedAtDescription,
+  ApiUserRoleCreatedAtExample,
+  ApiUserRoleUpdatedAtTitle,
+  ApiUserRoleUpdatedAtExample,
+  ApiUserRoleUpdatedAtDescription,
+} from '../../constant/api-user-role.constants';
+import { ApiIdFormat } from '../../../../common/constant/api.constants';
 
 export class UserRoleResponse {
   @ApiProperty({
-    title: 'Role Id',
-    description: '',
+    title: ApiUserRoleIdTitle,
+    format: ApiIdFormat,
+    description: ApiUserRoleIdDescription,
     example: ApiUserRoleIdExample,
   })
   id: string;
 
   @ApiProperty({
-    title: 'Name',
-    description: '',
-    example: 'REGULAR_USER',
+    title: ApiUserRoleNameTitle,
+    description: ApiUserRoleNameDescription,
+    example: ApiUserRoleNameExample,
   })
   name: string;
 
   @ApiProperty({
-    title: 'Description',
-    description: '',
-    example: 'The role description',
+    title: ApiUserRoleDescriptionTitle,
+    description: ApiUserRoleDescription,
+    example: ApiUserRoleDescriptionExample,
+    required: false,
+    nullable: true,
   })
   description: string;
 
   @ApiProperty({
-    title: 'Created At',
-    description: '',
-    example: new Date(),
+    title: ApiUserRoleCreatedAtTitle,
+    description: ApiUserRoleCreatedAtDescription,
+    example: ApiUserRoleCreatedAtExample,
   })
   createdAt: Date;
 
   @ApiProperty({
-    title: 'Updated At',
-    description: '',
-    example: new Date(),
+    title: ApiUserRoleUpdatedAtTitle,
+    description: ApiUserRoleUpdatedAtDescription,
+    example: ApiUserRoleUpdatedAtExample,
   })
   updatedAt: Date;
 }

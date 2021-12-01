@@ -1,27 +1,44 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, Matches, MaxLength, MinLength } from 'class-validator';
+import {
+  ApiUserRoleDescription,
+  ApiUserRoleDescriptionExample,
+  ApiUserRoleDescriptionMaxLength,
+  ApiUserRoleDescriptionMinLength,
+  ApiUserRoleDescriptionPattern,
+  ApiUserRoleDescriptionTitle,
+  ApiUserRoleNameDescription,
+  ApiUserRoleNameExample,
+  ApiUserRoleNameMaxLength,
+  ApiUserRoleNameMinLength,
+  ApiUserRoleNamePattern,
+  ApiUserRoleNameTitle,
+} from '../../constant/api-user-role.constants';
 
 export class UpdateUserRoleRequest {
   @ApiProperty({
-    title: 'Name',
-    description: '',
-    example: 'REGULAR_USER',
+    title: ApiUserRoleNameTitle,
+    description: ApiUserRoleNameDescription,
+    example: ApiUserRoleNameExample,
   })
-  @MinLength(8)
-  @MaxLength(32)
-  @Matches(/[A-Z_]/, {
+  @MinLength(ApiUserRoleNameMinLength)
+  @MaxLength(ApiUserRoleNameMaxLength)
+  @Matches(ApiUserRoleNamePattern, {
     message: (p) =>
       `${p.property} can only contain uppercase letters and underscores`,
   })
   name: string;
 
   @ApiProperty({
-    title: 'Description',
-    description: '',
-    example: 'The role description',
+    title: ApiUserRoleDescriptionTitle,
+    description: ApiUserRoleDescription,
+    example: ApiUserRoleDescriptionExample,
     required: false,
+    nullable: true,
   })
-  @MaxLength(128)
+  @MinLength(ApiUserRoleDescriptionMinLength)
+  @MaxLength(ApiUserRoleDescriptionMaxLength)
+  @Matches(ApiUserRoleDescriptionPattern)
   @IsOptional()
-  description: string;
+  description?: string;
 }

@@ -10,5 +10,9 @@ export const UserRoleAuthority = {
   [UserRole.SUPER_USER]: [
     UserAuthority.USER_ADMINISTRATION_READ,
     UserAuthority.USER_ADMINISTRATION_WRITE,
+    UserAuthority.ROLE_ADMINISTRATION_READ,
+    UserAuthority.ROLE_ADMINISTRATION_WRITE,
+    UserAuthority.AUTHORITY_ADMINISTRATION_READ,
+    UserAuthority.AUTHORITY_ADMINISTRATION_WRITE,
   ],
 };
