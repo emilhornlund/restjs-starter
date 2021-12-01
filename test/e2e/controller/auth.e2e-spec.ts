@@ -1,12 +1,12 @@
 import * as request from 'supertest';
-import { TestApplication } from './test-application';
-import { TestData } from './test-data';
+import { TestApplication } from '../../test-application';
+import { TestData } from '../../test-data';
 import {
   UserAuthority,
   UserRole,
   UserRoleAuthority,
-} from '../src/user/service';
-import { JwtPayloadDto } from '../src/auth/service';
+} from '../../../src/user/service';
+import { JwtPayloadDto } from '../../../src/auth/service';
 
 describe('AuthController (e2e)', () => {
   const app: TestApplication = new TestApplication();

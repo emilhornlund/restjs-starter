@@ -1,7 +1,7 @@
 import * as request from 'supertest';
-import { TestApplication } from './test-application';
-import { TestData } from './test-data';
-import { UserRole } from '../src/user/service';
+import { TestApplication } from '../../test-application';
+import { TestData } from '../../test-data';
+import { UserRole } from '../../../src/user/service';
 
 describe('UserController (e2e)', () => {
   const app: TestApplication = new TestApplication();
