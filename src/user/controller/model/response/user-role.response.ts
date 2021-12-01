@@ -41,7 +41,7 @@ export class UserRoleResponse {
     required: false,
     nullable: true,
   })
-  description: string;
+  description?: string;
 
   @ApiProperty({
     title: ApiUserRoleCreatedAtTitle,

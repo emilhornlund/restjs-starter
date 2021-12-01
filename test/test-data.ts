@@ -1,5 +1,9 @@
 import { TestUtils } from './test-utils';
 import {
+  ApiUserAuthorityDescriptionMaxLength,
+  ApiUserAuthorityDescriptionMinLength,
+  ApiUserAuthorityNameMaxLength,
+  ApiUserAuthorityNameMinLength,
   ApiUserRoleDescriptionMaxLength,
   ApiUserRoleDescriptionMinLength,
   ApiUserRoleNameMaxLength,
@@ -107,6 +111,84 @@ export class TestData {
     public static readonly InvalidDescriptionMoreThanMaxLength =
       TestUtils.randomString(
         ApiUserRoleDescriptionMaxLength + 1,
+        TestUtils.Characters.ALPHANUMERIC,
+      );
+  };
+
+  // -------------------------------------------------------------------------
+  // User Authorities
+  // -------------------------------------------------------------------------
+
+  static UserAuthority = class {
+    // User Ids
+    public static NonExistingId = 'aad63dd6-ac6b-4725-b850-87b53782e6bf';
+
+    // User Authority Names
+    public static readonly PrimaryName = 'PRIMARY_AUTHORITY:write';
+    public static readonly SecondaryName = 'SECONDARY_AUTHORITY:read';
+    public static readonly NamePrefix = 'AUTHORITY_PREFIX';
+    public static readonly ValidNameExactMinLength =
+      TestUtils.randomString(
+        ApiUserAuthorityNameMinLength - 5,
+        TestUtils.Characters.UPPERCASE_LETTERS,
+        '_',
+      ) + ':read';
+    public static readonly ValidNameExactMaxLength =
+      TestUtils.randomString(
+        ApiUserAuthorityNameMaxLength - 5,
+        TestUtils.Characters.UPPERCASE_LETTERS,
+        '_',
+      ) + ':read';
+
+    // Invalid User Authority Names
+    public static readonly InvalidNameLessThanMinLength =
+      TestUtils.randomString(
+        ApiUserAuthorityNameMinLength - 5 - 1,
+        TestUtils.Characters.UPPERCASE_LETTERS,
+        '_',
+      ) + ':read';
+    public static readonly InvalidNameMoreThanMaxLength =
+      TestUtils.randomString(
+        ApiUserAuthorityNameMaxLength - 5 + 1,
+        TestUtils.Characters.UPPERCASE_LETTERS,
+        '_',
+      ) + ':read';
+    public static readonly InvalidNameIncludingLowercaseLetters =
+      TestUtils.randomString(
+        ApiUserAuthorityNameMinLength - 5,
+        TestUtils.Characters.LOWERCASE_LETTERS,
+      ) + ':read';
+    public static readonly InvalidNameIncludingNumbers =
+      TestUtils.randomString(
+        ApiUserAuthorityNameMinLength - 5,
+        TestUtils.Characters.NUMBERS,
+      ) + ':read';
+
+    ///User Authority Descriptions
+    public static readonly PrimaryDescription =
+      'The primary user authority for testing';
+    public static readonly SecondaryDescription =
+      'The secondary user authority for testing';
+    public static readonly ValidDescriptionExactMinLength =
+      TestUtils.randomString(
+        ApiUserAuthorityDescriptionMinLength,
+        TestUtils.Characters.ALPHANUMERIC,
+      );
+    public static readonly ValidNameDescriptionExactMaxLength =
+      TestUtils.randomString(
+        ApiUserAuthorityDescriptionMaxLength,
+        TestUtils.Characters.ALPHANUMERIC,
+      );
+
+    // Invalid User Authority Descriptions
+    public static readonly InvalidDescriptionLessThanMinLength =
+      TestUtils.randomString(
+        ApiUserAuthorityDescriptionMinLength - 1,
+        TestUtils.Characters.ALPHANUMERIC,
+      );
+    public static readonly InvalidDescriptionMoreThanMaxLength =
+      TestUtils.randomString(
+        ApiUserAuthorityDescriptionMaxLength + 1,
         TestUtils.Characters.ALPHANUMERIC,
       );
   };

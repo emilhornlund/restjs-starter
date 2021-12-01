@@ -59,7 +59,7 @@ export class UserAuthorityService {
    */
   public async createUserAuthority(
     name: string,
-    description: string,
+    description?: string,
   ): Promise<UserAuthorityDto> {
     await this.verifyUserAuthorityNameUnique(name);
 
@@ -77,15 +77,20 @@ export class UserAuthorityService {
    * Update an existing user authority.
    *
    * @param userAuthorityId The user authority's id
+   * @param name The user authority's name
    * @param description The user authority's description
    */
   public async updateUserAuthority(
     userAuthorityId: string,
-    description: string,
+    name: string,
+    description?: string,
   ): Promise<UserAuthorityDto> {
+    await this.verifyUserAuthorityNameUnique(name, userAuthorityId);
+
     const userAuthorityEntity = await this.getUserAuthorityEntityByIdOrThrow(
       userAuthorityId,
     );
+    userAuthorityEntity.name = name;
     userAuthorityEntity.description = description;
 
     const savedEntity = await this.userAuthorityRepository.save(
@@ -139,7 +144,11 @@ export class UserAuthorityService {
     const userAuthorityEntity = await this.getUserAuthorityEntityByIdOrThrow(
       userAuthorityId,
     );
-    await this.userAuthorityRepository.remove(userAuthorityEntity);
+    try {
+      await this.userAuthorityRepository.remove(userAuthorityEntity);
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   /**

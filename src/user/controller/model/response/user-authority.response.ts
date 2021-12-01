@@ -1,39 +1,59 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ApiUserAuthorityIdExample } from '../../constant/api-user-authority.constants';
+import {
+  ApiUserAuthorityIdExample,
+  ApiUserAuthorityDescriptionExample,
+  ApiUserAuthorityNameExample,
+  ApiUserAuthorityNameDescription,
+  ApiUserAuthorityNameTitle,
+  ApiUserAuthorityDescriptionTitle,
+  ApiUserAuthorityDescription,
+  ApiUserAuthorityIdTitle,
+  ApiUserAuthorityIdDescription,
+  ApiUserAuthorityCreatedAtTitle,
+  ApiUserAuthorityCreatedAtDescription,
+  ApiUserAuthorityCreatedAtExample,
+  ApiUserAuthorityUpdatedAtTitle,
+  ApiUserAuthorityUpdatedAtExample,
+  ApiUserAuthorityUpdatedAtDescription,
+} from '../../constant/api-user-authority.constants';
+import { ApiIdFormat } from '../../../../common/constant/api.constants';
 
 export class UserAuthorityResponse {
   @ApiProperty({
-    title: 'Authority Id',
-    description: '',
+    title: ApiUserAuthorityIdTitle,
+    format: ApiIdFormat,
+    description: ApiUserAuthorityIdDescription,
     example: ApiUserAuthorityIdExample,
   })
   id: string;
 
   @ApiProperty({
-    title: 'Name',
-    description: '',
-    example: 'AUTHORITY_ADMINISTRATION:read',
+    title: ApiUserAuthorityNameTitle,
+    description: ApiUserAuthorityNameDescription,
+    example: ApiUserAuthorityNameExample,
   })
   name: string;
 
   @ApiProperty({
-    title: 'Description',
-    description: '',
-    example: 'The authority description',
+    title: ApiUserAuthorityDescriptionTitle,
+    description: ApiUserAuthorityDescription,
+    example: ApiUserAuthorityDescriptionExample,
+    required: false,
+    nullable: true,
   })
-  description: string;
+  description?: string;
 
   @ApiProperty({
-    title: 'Created At',
-    description: '',
-    example: new Date(),
+    title: ApiUserAuthorityCreatedAtTitle,
+    description: ApiUserAuthorityCreatedAtDescription,
+    example: ApiUserAuthorityCreatedAtExample,
   })
   createdAt: Date;
 
   @ApiProperty({
-    title: 'Updated At',
-    description: '',
-    example: new Date(),
+    title: ApiUserAuthorityUpdatedAtTitle,
+    description: ApiUserAuthorityUpdatedAtDescription,
+    example: ApiUserAuthorityUpdatedAtExample,
   })
   updatedAt: Date;
 }

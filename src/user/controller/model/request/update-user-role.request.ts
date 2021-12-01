@@ -24,8 +24,8 @@ export class UpdateUserRoleRequest {
   @MinLength(ApiUserRoleNameMinLength)
   @MaxLength(ApiUserRoleNameMaxLength)
   @Matches(ApiUserRoleNamePattern, {
-    message: (p) =>
-      `${p.property} can only contain uppercase letters and underscores`,
+    message: (arg) =>
+      `${arg.property} can only contain uppercase letters and underscores`,
   })
   name: string;
 
@@ -38,7 +38,9 @@ export class UpdateUserRoleRequest {
   })
   @MinLength(ApiUserRoleDescriptionMinLength)
   @MaxLength(ApiUserRoleDescriptionMaxLength)
-  @Matches(ApiUserRoleDescriptionPattern)
+  @Matches(ApiUserRoleDescriptionPattern, {
+    message: (arg) => `${arg.property} can only contain word characters`,
+  })
   @IsOptional()
   description?: string;
 }

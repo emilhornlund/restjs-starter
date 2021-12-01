@@ -132,7 +132,11 @@ export class UserAuthorityController {
     @Body() updateUserRequest: UpdateUserAuthorityRequest,
   ): Promise<UserAuthorityResponse> {
     return this.userAuthorityService
-      .updateUserAuthority(userAuthorityId, updateUserRequest.description)
+      .updateUserAuthority(
+        userAuthorityId,
+        updateUserRequest.name,
+        updateUserRequest.description,
+      )
       .then(UserAuthorityController.toUserAuthorityResponse);
   }
 

@@ -3,7 +3,7 @@ import { TestApplication } from '../../test-application';
 import { UserRole } from '../../../src/user/service';
 import { TestData } from '../../test-data';
 
-describe('UserRoleController (e2e)', () => {
+describe('UserAuthorityController (e2e)', () => {
   const app: TestApplication = new TestApplication();
 
   beforeEach(async () => {
@@ -14,35 +14,38 @@ describe('UserRoleController (e2e)', () => {
     await app.close();
   });
 
-  const arrayContainingUserRoles = (from: number, count: number): any[] => {
+  const arrayContainingUserAuthorities = (
+    from: number,
+    count: number,
+  ): any[] => {
     return Array(count)
       .fill(0)
       .map((_, i) => ({
         id: expect.any(String),
-        name: `${TestData.UserRole.NamePrefix}_${from + i}`,
-        description: TestData.UserRole.PrimaryDescription,
+        name: `${TestData.UserAuthority.NamePrefix}_${from + i}:read`,
+        description: TestData.UserAuthority.PrimaryDescription,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
       }));
   };
 
-  describe('/user_roles (GET)', () => {
-    it('should get a page of user roles with default page and size', async () => {
+  describe('/user_authorities (GET)', () => {
+    it('should get a page of user authorities with default page and size', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
       const { id, name, description, createdAt, updatedAt } =
-        await app.createUserRole('TEST', 'description');
+        await app.createUserAuthority('TEST', 'description');
 
       return request(app.getHttpServer())
-        .get('/user_roles')
+        .get('/user_authorities')
         .set({ Authorization: 'Bearer ' + accessToken })
         .expect(200)
         .expect(({ body }) => {
           expect(body).toBeObject();
           expect(body).toStrictEqual({
-            user_roles: [
+            user_authorities: [
               {
                 id,
                 name,
@@ -61,21 +64,21 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should get the first page of 5 user roles', async () => {
+    it('should get the first page of 5 user authorities', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
-      await app.createUserRoles(1, 10);
+      await app.createUserAuthorities(1, 10);
 
       return request(app.getHttpServer())
-        .get('/user_roles?page=0&size=5')
+        .get('/user_authorities?page=0&size=5')
         .set({ Authorization: 'Bearer ' + accessToken })
         .expect(200)
         .expect(({ body }) => {
           expect(body).toBeObject();
           expect(body).toStrictEqual(
             expect.objectContaining({
-              user_roles: arrayContainingUserRoles(1, 5),
+              user_authorities: arrayContainingUserAuthorities(1, 5),
               page: {
                 number: 0,
                 size: 5,
@@ -87,21 +90,21 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should get the second page of 5 user roles', async () => {
+    it('should get the second page of 5 user authorities', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
-      await app.createUserRoles(1, 10);
+      await app.createUserAuthorities(1, 10);
 
       return request(app.getHttpServer())
-        .get('/user_roles?page=1&size=5')
+        .get('/user_authorities?page=1&size=5')
         .set({ Authorization: 'Bearer ' + accessToken })
         .expect(200)
         .expect(({ body }) => {
           expect(body).toBeObject();
           expect(body).toStrictEqual(
             expect.objectContaining({
-              user_roles: arrayContainingUserRoles(6, 5),
+              user_authorities: arrayContainingUserAuthorities(6, 5),
               page: {
                 number: 1,
                 size: 5,
@@ -113,13 +116,13 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to get a page of user roles when missing required authority', async () => {
+    it('should fail to get a page of user authorities when missing required authority', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.REGULAR_USER,
       );
 
       return request(app.getHttpServer())
-        .get('/user_roles')
+        .get('/user_authorities')
         .set({ Authorization: 'Bearer ' + accessToken })
         .expect(403)
         .expect(({ body }) => {
@@ -131,11 +134,11 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to get an page of user roles without an access token', async () => {
+    it('should fail to get an page of user authorities without an access token', async () => {
       await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
       return request(app.getHttpServer())
-        .get('/user_roles')
+        .get('/user_authorities')
         .expect(401)
         .expect(({ body }) => {
           expect(body).toBeObject();
@@ -146,14 +149,14 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to get an page of user roles with an expired access token', async () => {
+    it('should fail to get an page of user authorities with an expired access token', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
         true,
       );
 
       return request(app.getHttpServer())
-        .get('/user_roles')
+        .get('/user_authorities')
         .set({ Authorization: 'Bearer ' + accessToken })
         .expect(401)
         .expect(({ body }) => {
@@ -166,18 +169,18 @@ describe('UserRoleController (e2e)', () => {
     });
   });
 
-  describe('/user_roles (POST)', () => {
-    it('should create a new user role', async () => {
+  describe('/user_authorities (POST)', () => {
+    it('should create a new user authority', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
       return request(app.getHttpServer())
-        .post('/user_roles')
+        .post('/user_authorities')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.PrimaryName,
-          description: TestData.UserRole.PrimaryDescription,
+          name: TestData.UserAuthority.PrimaryName,
+          description: TestData.UserAuthority.PrimaryDescription,
         })
         .expect(201)
         .expect(({ body }) => {
@@ -185,8 +188,8 @@ describe('UserRoleController (e2e)', () => {
           expect(body).toStrictEqual(
             expect.objectContaining({
               id: expect.any(String),
-              name: TestData.UserRole.PrimaryName,
-              description: TestData.UserRole.PrimaryDescription,
+              name: TestData.UserAuthority.PrimaryName,
+              description: TestData.UserAuthority.PrimaryDescription,
               createdAt: expect.any(String),
               updatedAt: expect.any(String),
             }),
@@ -194,43 +197,43 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to create a new user role with a non unique name', async () => {
+    it('should fail to create a new user authority with a non unique name', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
-      await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .post('/user_roles')
+        .post('/user_authorities')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.PrimaryName,
-          description: TestData.UserRole.PrimaryDescription,
+          name: TestData.UserAuthority.PrimaryName,
+          description: TestData.UserAuthority.PrimaryDescription,
         })
         .expect(409)
         .expect(({ body }) => {
           expect(body).toBeObject();
           expect(body).toStrictEqual({
             statusCode: 409,
-            message: `Role with name \`${TestData.UserRole.PrimaryName}\` must be unique.`,
+            message: `Authority with name \`${TestData.UserAuthority.PrimaryName}\` must be unique.`,
           });
         });
     });
 
-    it('should create a new user role with a name length equal to 8 characters', async () => {
+    it('should create a new user authority with a name length equal to 8 characters', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
       return request(app.getHttpServer())
-        .post('/user_roles')
+        .post('/user_authorities')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.ValidNameExactMinLength,
-          description: TestData.UserRole.PrimaryDescription,
+          name: TestData.UserAuthority.ValidNameExactMinLength,
+          description: TestData.UserAuthority.PrimaryDescription,
         })
         .expect(201)
         .expect(({ body }) => {
@@ -238,8 +241,8 @@ describe('UserRoleController (e2e)', () => {
           expect(body).toStrictEqual(
             expect.objectContaining({
               id: expect.any(String),
-              name: TestData.UserRole.ValidNameExactMinLength,
-              description: TestData.UserRole.PrimaryDescription,
+              name: TestData.UserAuthority.ValidNameExactMinLength,
+              description: TestData.UserAuthority.PrimaryDescription,
               createdAt: expect.any(String),
               updatedAt: expect.any(String),
             }),
@@ -247,17 +250,17 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to create a new user role with a name length shorter than 8 characters', async () => {
+    it('should fail to create a new user authority with a name length shorter than 8 characters', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
       return request(app.getHttpServer())
-        .post('/user_roles')
+        .post('/user_authorities')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.InvalidNameLessThanMinLength,
-          description: TestData.UserRole.PrimaryDescription,
+          name: TestData.UserAuthority.InvalidNameLessThanMinLength,
+          description: TestData.UserAuthority.PrimaryDescription,
         })
         .expect(400)
         .expect(({ body }) => {
@@ -270,7 +273,7 @@ describe('UserRoleController (e2e)', () => {
                 field: 'name',
                 constraints: {
                   matches:
-                    'name can only contain uppercase letters and underscores',
+                    'name can only contain uppercase letters and underscores followed by either :read or :write',
                   minLength:
                     'name must be longer than or equal to 8 characters',
                 },
@@ -280,17 +283,17 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should create a new user role with a name length equal to 32 characters', async () => {
+    it('should create a new user authority with a name length equal to 32 characters', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
       return request(app.getHttpServer())
-        .post('/user_roles')
+        .post('/user_authorities')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.ValidNameExactMaxLength,
-          description: TestData.UserRole.PrimaryDescription,
+          name: TestData.UserAuthority.ValidNameExactMaxLength,
+          description: TestData.UserAuthority.PrimaryDescription,
         })
         .expect(201)
         .expect(({ body }) => {
@@ -298,8 +301,8 @@ describe('UserRoleController (e2e)', () => {
           expect(body).toStrictEqual(
             expect.objectContaining({
               id: expect.any(String),
-              name: TestData.UserRole.ValidNameExactMaxLength,
-              description: TestData.UserRole.PrimaryDescription,
+              name: TestData.UserAuthority.ValidNameExactMaxLength,
+              description: TestData.UserAuthority.PrimaryDescription,
               createdAt: expect.any(String),
               updatedAt: expect.any(String),
             }),
@@ -307,17 +310,17 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to create a new user role with a name length longer than 32 characters', async () => {
+    it('should fail to create a new user authority with a name length longer than 32 characters', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
       return request(app.getHttpServer())
-        .post('/user_roles')
+        .post('/user_authorities')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.InvalidNameMoreThanMaxLength,
-          description: TestData.UserRole.PrimaryDescription,
+          name: TestData.UserAuthority.InvalidNameMoreThanMaxLength,
+          description: TestData.UserAuthority.PrimaryDescription,
         })
         .expect(400)
         .expect(({ body }) => {
@@ -338,17 +341,17 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to create a new user role with a name containing lowercase letters', async () => {
+    it('should fail to create a new user authority with a name containing lowercase letters', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
       return request(app.getHttpServer())
-        .post('/user_roles')
+        .post('/user_authorities')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.InvalidNameIncludingLowercaseLetters,
-          description: TestData.UserRole.PrimaryDescription,
+          name: TestData.UserAuthority.InvalidNameIncludingLowercaseLetters,
+          description: TestData.UserAuthority.PrimaryDescription,
         })
         .expect(400)
         .expect(({ body }) => {
@@ -361,7 +364,7 @@ describe('UserRoleController (e2e)', () => {
                 field: 'name',
                 constraints: {
                   matches:
-                    'name can only contain uppercase letters and underscores',
+                    'name can only contain uppercase letters and underscores followed by either :read or :write',
                 },
               },
             ],
@@ -369,17 +372,17 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to create a new user role with a name containing numbers', async () => {
+    it('should fail to create a new user authority with a name containing numbers', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
       return request(app.getHttpServer())
-        .post('/user_roles')
+        .post('/user_authorities')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.InvalidNameIncludingNumbers,
-          description: TestData.UserRole.PrimaryDescription,
+          name: TestData.UserAuthority.InvalidNameIncludingNumbers,
+          description: TestData.UserAuthority.PrimaryDescription,
         })
         .expect(400)
         .expect(({ body }) => {
@@ -392,7 +395,7 @@ describe('UserRoleController (e2e)', () => {
                 field: 'name',
                 constraints: {
                   matches:
-                    'name can only contain uppercase letters and underscores',
+                    'name can only contain uppercase letters and underscores followed by either :read or :write',
                 },
               },
             ],
@@ -400,16 +403,16 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should create a new user role without a description', async () => {
+    it('should create a new user authority without a description', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
       return request(app.getHttpServer())
-        .post('/user_roles')
+        .post('/user_authorities')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.PrimaryName,
+          name: TestData.UserAuthority.PrimaryName,
         })
         .expect(201)
         .expect(({ body }) => {
@@ -417,7 +420,7 @@ describe('UserRoleController (e2e)', () => {
           expect(body).toStrictEqual(
             expect.objectContaining({
               id: expect.any(String),
-              name: TestData.UserRole.PrimaryName,
+              name: TestData.UserAuthority.PrimaryName,
               createdAt: expect.any(String),
               updatedAt: expect.any(String),
             }),
@@ -425,17 +428,17 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should create a new user role with a description length equal to 2 character', async () => {
+    it('should create a new user authority with a description length equal to 2 character', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
       return request(app.getHttpServer())
-        .post('/user_roles')
+        .post('/user_authorities')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.PrimaryName,
-          description: TestData.UserRole.ValidDescriptionExactMinLength,
+          name: TestData.UserAuthority.PrimaryName,
+          description: TestData.UserAuthority.ValidDescriptionExactMinLength,
         })
         .expect(201)
         .expect(({ body }) => {
@@ -443,8 +446,9 @@ describe('UserRoleController (e2e)', () => {
           expect(body).toStrictEqual(
             expect.objectContaining({
               id: expect.any(String),
-              name: TestData.UserRole.PrimaryName,
-              description: TestData.UserRole.ValidDescriptionExactMinLength,
+              name: TestData.UserAuthority.PrimaryName,
+              description:
+                TestData.UserAuthority.ValidDescriptionExactMinLength,
               createdAt: expect.any(String),
               updatedAt: expect.any(String),
             }),
@@ -452,17 +456,18 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to create a new user role with a description length shorter than 2 character', async () => {
+    it('should fail to create a new user authority with a description length shorter than 2 character', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
       return request(app.getHttpServer())
-        .post('/user_roles')
+        .post('/user_authorities')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.PrimaryName,
-          description: TestData.UserRole.InvalidDescriptionLessThanMinLength,
+          name: TestData.UserAuthority.PrimaryName,
+          description:
+            TestData.UserAuthority.InvalidDescriptionLessThanMinLength,
         })
         .expect(400)
         .expect(({ body }) => {
@@ -484,17 +489,18 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should create a new user role with a description length equal to 128 characters', async () => {
+    it('should create a new user authority with a description length equal to 128 characters', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
       return request(app.getHttpServer())
-        .post('/user_roles')
+        .post('/user_authorities')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.PrimaryName,
-          description: TestData.UserRole.ValidNameDescriptionExactMaxLength,
+          name: TestData.UserAuthority.PrimaryName,
+          description:
+            TestData.UserAuthority.ValidNameDescriptionExactMaxLength,
         })
         .expect(201)
         .expect(({ body }) => {
@@ -502,8 +508,9 @@ describe('UserRoleController (e2e)', () => {
           expect(body).toStrictEqual(
             expect.objectContaining({
               id: expect.any(String),
-              name: TestData.UserRole.PrimaryName,
-              description: TestData.UserRole.ValidNameDescriptionExactMaxLength,
+              name: TestData.UserAuthority.PrimaryName,
+              description:
+                TestData.UserAuthority.ValidNameDescriptionExactMaxLength,
               createdAt: expect.any(String),
               updatedAt: expect.any(String),
             }),
@@ -511,17 +518,18 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to create a new user role with a description length longer than 128 characters', async () => {
+    it('should fail to create a new user authority with a description length longer than 128 characters', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
       return request(app.getHttpServer())
-        .post('/user_roles')
+        .post('/user_authorities')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.PrimaryName,
-          description: TestData.UserRole.InvalidDescriptionMoreThanMaxLength,
+          name: TestData.UserAuthority.PrimaryName,
+          description:
+            TestData.UserAuthority.InvalidDescriptionMoreThanMaxLength,
         })
         .expect(400)
         .expect(({ body }) => {
@@ -542,17 +550,17 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to create a new user role when missing required authority', async () => {
+    it('should fail to create a new user authority when missing required authority', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.REGULAR_USER,
       );
 
       return request(app.getHttpServer())
-        .post('/user_roles')
+        .post('/user_authorities')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.PrimaryName,
-          description: TestData.UserRole.PrimaryDescription,
+          name: TestData.UserAuthority.PrimaryName,
+          description: TestData.UserAuthority.PrimaryDescription,
         })
         .expect(403)
         .expect(({ body }) => {
@@ -564,14 +572,14 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to create a new user role without an access token', async () => {
+    it('should fail to create a new user authority without an access token', async () => {
       await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
       return request(app.getHttpServer())
-        .post('/user_roles')
+        .post('/user_authorities')
         .send({
-          name: TestData.UserRole.PrimaryName,
-          description: TestData.UserRole.PrimaryDescription,
+          name: TestData.UserAuthority.PrimaryName,
+          description: TestData.UserAuthority.PrimaryDescription,
         })
         .expect(401)
         .expect(({ body }) => {
@@ -583,18 +591,18 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to create a new user role with an expired access token', async () => {
+    it('should fail to create a new user authority with an expired access token', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
         true,
       );
 
       return request(app.getHttpServer())
-        .post('/user_roles')
+        .post('/user_authorities')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.PrimaryName,
-          description: TestData.UserRole.PrimaryDescription,
+          name: TestData.UserAuthority.PrimaryName,
+          description: TestData.UserAuthority.PrimaryDescription,
         })
         .expect(401)
         .expect(({ body }) => {
@@ -607,20 +615,20 @@ describe('UserRoleController (e2e)', () => {
     });
   });
 
-  describe('/user_roles/:userRoleId (GET)', () => {
-    it('should get an existing user role by id', async () => {
+  describe('/user_authorities/:userAuthorityId (GET)', () => {
+    it('should get an existing user authority by id', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
       const { id, name, description, createdAt, updatedAt } =
-        await app.createUserRole(
-          TestData.UserRole.PrimaryName,
-          TestData.UserRole.PrimaryDescription,
+        await app.createUserAuthority(
+          TestData.UserAuthority.PrimaryName,
+          TestData.UserAuthority.PrimaryDescription,
         );
 
       return request(app.getHttpServer())
-        .get('/user_roles/' + id)
+        .get('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .expect(200)
         .expect(({ body }) => {
@@ -635,41 +643,41 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to get a non existing user role', async () => {
+    it('should fail to get a non existing user authority', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
-      await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .get('/user_roles/' + TestData.UserRole.NonExistingId)
+        .get('/user_authorities/' + TestData.UserAuthority.NonExistingId)
         .set({ Authorization: 'Bearer ' + accessToken })
         .expect(404)
         .expect(({ body }) => {
           expect(body).toBeObject();
           expect(body).toStrictEqual({
             statusCode: 404,
-            message: `Role with id \`${TestData.UserRole.NonExistingId}\` was not found.`,
+            message: `Authority with id \`${TestData.UserAuthority.NonExistingId}\` was not found.`,
           });
         });
     });
 
-    it('should fail to get an existing user role by id when missing required authority', async () => {
+    it('should fail to get an existing user authority by id when missing required authority', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.REGULAR_USER,
       );
 
-      const { id } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .get('/user_roles/' + id)
+        .get('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .expect(403)
         .expect(({ body }) => {
@@ -681,16 +689,16 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to get an existing user role by id without an access token', async () => {
+    it('should fail to get an existing user authority by id without an access token', async () => {
       await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
-      const { id } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .get('/user_roles/' + id)
+        .get('/user_authorities/' + id)
         .expect(401)
         .expect(({ body }) => {
           expect(body).toBeObject();
@@ -701,19 +709,19 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to get an existing user role by id with an expired access token', async () => {
+    it('should fail to get an existing user authority by id with an expired access token', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
         true,
       );
 
-      const { id } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .get('/user_roles/' + id)
+        .get('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .expect(401)
         .expect(({ body }) => {
@@ -726,23 +734,23 @@ describe('UserRoleController (e2e)', () => {
     });
   });
 
-  describe('/user_roles/:userRoleId (PUT)', () => {
-    it('should update an existing user role', async () => {
+  describe('/user_authorities/:userAuthorityId (PUT)', () => {
+    it('should update an existing user authority', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
-      const { id, createdAt } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id, createdAt } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + id)
+        .put('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.SecondaryName,
-          description: TestData.UserRole.SecondaryDescription,
+          name: TestData.UserAuthority.SecondaryName,
+          description: TestData.UserAuthority.SecondaryDescription,
         })
         .expect(200)
         .expect(({ body }) => {
@@ -750,8 +758,8 @@ describe('UserRoleController (e2e)', () => {
           expect(body).toStrictEqual(
             expect.objectContaining({
               id,
-              name: TestData.UserRole.SecondaryName,
-              description: TestData.UserRole.SecondaryDescription,
+              name: TestData.UserAuthority.SecondaryName,
+              description: TestData.UserAuthority.SecondaryDescription,
               createdAt: createdAt.toISOString(),
               updatedAt: expect.any(String),
             }),
@@ -759,22 +767,22 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should update an existing user role without changing name', async () => {
+    it('should update an existing user authority without changing name', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
-      const { id, name, createdAt } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id, name, createdAt } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + id)
+        .put('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           name,
-          description: TestData.UserRole.SecondaryDescription,
+          description: TestData.UserAuthority.SecondaryDescription,
         })
         .expect(200)
         .expect(({ body }) => {
@@ -783,7 +791,7 @@ describe('UserRoleController (e2e)', () => {
             expect.objectContaining({
               id,
               name,
-              description: TestData.UserRole.SecondaryDescription,
+              description: TestData.UserAuthority.SecondaryDescription,
               createdAt: createdAt.toISOString(),
               updatedAt: expect.any(String),
             }),
@@ -791,77 +799,77 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to update a non existing user role', async () => {
+    it('should fail to update a non existing user authority', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
-      await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + TestData.UserRole.NonExistingId)
+        .put('/user_authorities/' + TestData.UserAuthority.NonExistingId)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.SecondaryName,
-          description: TestData.UserRole.SecondaryDescription,
+          name: TestData.UserAuthority.SecondaryName,
+          description: TestData.UserAuthority.SecondaryDescription,
         })
         .expect(404)
         .expect(({ body }) => {
           expect(body).toBeObject();
           expect(body).toStrictEqual({
             statusCode: 404,
-            message: `Role with id \`${TestData.UserRole.NonExistingId}\` was not found.`,
+            message: `Authority with id \`${TestData.UserAuthority.NonExistingId}\` was not found.`,
           });
         });
     });
 
-    it('should fail to update an existing user role with a non unique name', async () => {
+    it('should fail to update an existing user authority with a non unique name', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
-      const { id } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
-      const { name } = await app.createUserRole(
-        TestData.UserRole.SecondaryName,
-        TestData.UserRole.SecondaryDescription,
+      const { name } = await app.createUserAuthority(
+        TestData.UserAuthority.SecondaryName,
+        TestData.UserAuthority.SecondaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + id)
+        .put('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           name,
-          description: TestData.UserRole.SecondaryDescription,
+          description: TestData.UserAuthority.SecondaryDescription,
         })
         .expect(409)
         .expect(({ body }) => {
           expect(body).toBeObject();
           expect(body).toStrictEqual({
             statusCode: 409,
-            message: `Role with name \`${TestData.UserRole.SecondaryName}\` must be unique.`,
+            message: `Authority with name \`${TestData.UserAuthority.SecondaryName}\` must be unique.`,
           });
         });
     });
 
-    it('should fail to update an existing user role without a name', async () => {
+    it('should fail to update an existing user authority without a name', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
-      const { id, description } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id, description } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + id)
+        .put('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           description,
@@ -877,7 +885,7 @@ describe('UserRoleController (e2e)', () => {
                 field: 'name',
                 constraints: {
                   matches:
-                    'name can only contain uppercase letters and underscores',
+                    'name can only contain uppercase letters and underscores followed by either :read or :write',
                   maxLength:
                     'name must be shorter than or equal to 32 characters',
                   minLength:
@@ -889,22 +897,22 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should update an existing user role with a name length equal to 8 characters', async () => {
+    it('should update an existing user authority with a name length equal to 8 characters', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
-      const { id, createdAt } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id, createdAt } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + id)
+        .put('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.ValidNameExactMinLength,
-          description: TestData.UserRole.SecondaryDescription,
+          name: TestData.UserAuthority.ValidNameExactMinLength,
+          description: TestData.UserAuthority.SecondaryDescription,
         })
         .expect(200)
         .expect(({ body }) => {
@@ -912,8 +920,8 @@ describe('UserRoleController (e2e)', () => {
           expect(body).toStrictEqual(
             expect.objectContaining({
               id,
-              name: TestData.UserRole.ValidNameExactMinLength,
-              description: TestData.UserRole.SecondaryDescription,
+              name: TestData.UserAuthority.ValidNameExactMinLength,
+              description: TestData.UserAuthority.SecondaryDescription,
               createdAt: createdAt.toISOString(),
               updatedAt: expect.any(String),
             }),
@@ -921,22 +929,22 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to update an existing user role with a name length shorter than 8 characters', async () => {
+    it('should fail to update an existing user authority with a name length shorter than 8 characters', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
-      const { id } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + id)
+        .put('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.InvalidNameLessThanMinLength,
-          description: TestData.UserRole.SecondaryDescription,
+          name: TestData.UserAuthority.InvalidNameLessThanMinLength,
+          description: TestData.UserAuthority.SecondaryDescription,
         })
         .expect(400)
         .expect(({ body }) => {
@@ -949,7 +957,7 @@ describe('UserRoleController (e2e)', () => {
                 field: 'name',
                 constraints: {
                   matches:
-                    'name can only contain uppercase letters and underscores',
+                    'name can only contain uppercase letters and underscores followed by either :read or :write',
                   minLength:
                     'name must be longer than or equal to 8 characters',
                 },
@@ -959,22 +967,22 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should update an existing user role with a name length equal to 32 characters', async () => {
+    it('should update an existing user authority with a name length equal to 32 characters', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
-      const { id, createdAt } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id, createdAt } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + id)
+        .put('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.ValidNameExactMaxLength,
-          description: TestData.UserRole.SecondaryDescription,
+          name: TestData.UserAuthority.ValidNameExactMaxLength,
+          description: TestData.UserAuthority.SecondaryDescription,
         })
         .expect(200)
         .expect(({ body }) => {
@@ -982,8 +990,8 @@ describe('UserRoleController (e2e)', () => {
           expect(body).toStrictEqual(
             expect.objectContaining({
               id,
-              name: TestData.UserRole.ValidNameExactMaxLength,
-              description: TestData.UserRole.SecondaryDescription,
+              name: TestData.UserAuthority.ValidNameExactMaxLength,
+              description: TestData.UserAuthority.SecondaryDescription,
               createdAt: createdAt.toISOString(),
               updatedAt: expect.any(String),
             }),
@@ -991,22 +999,22 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to update an existing user role with a name length longer than 32 characters', async () => {
+    it('should fail to update an existing user authority with a name length longer than 32 characters', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
-      const { id } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + id)
+        .put('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.InvalidNameMoreThanMaxLength,
-          description: TestData.UserRole.SecondaryDescription,
+          name: TestData.UserAuthority.InvalidNameMoreThanMaxLength,
+          description: TestData.UserAuthority.SecondaryDescription,
         })
         .expect(400)
         .expect(({ body }) => {
@@ -1027,22 +1035,22 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to update an existing user role with a name containing lowercase letters', async () => {
+    it('should fail to update an existing user authority with a name containing lowercase letters', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
-      const { id } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + id)
+        .put('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.InvalidNameIncludingLowercaseLetters,
-          description: TestData.UserRole.SecondaryDescription,
+          name: TestData.UserAuthority.InvalidNameIncludingLowercaseLetters,
+          description: TestData.UserAuthority.SecondaryDescription,
         })
         .expect(400)
         .expect(({ body }) => {
@@ -1055,7 +1063,7 @@ describe('UserRoleController (e2e)', () => {
                 field: 'name',
                 constraints: {
                   matches:
-                    'name can only contain uppercase letters and underscores',
+                    'name can only contain uppercase letters and underscores followed by either :read or :write',
                 },
               },
             ],
@@ -1063,22 +1071,22 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to update an existing user role with a name containing numbers', async () => {
+    it('should fail to update an existing user authority with a name containing numbers', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
-      const { id } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + id)
+        .put('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.InvalidNameIncludingNumbers,
-          description: TestData.UserRole.SecondaryDescription,
+          name: TestData.UserAuthority.InvalidNameIncludingNumbers,
+          description: TestData.UserAuthority.SecondaryDescription,
         })
         .expect(400)
         .expect(({ body }) => {
@@ -1091,7 +1099,7 @@ describe('UserRoleController (e2e)', () => {
                 field: 'name',
                 constraints: {
                   matches:
-                    'name can only contain uppercase letters and underscores',
+                    'name can only contain uppercase letters and underscores followed by either :read or :write',
                 },
               },
             ],
@@ -1099,18 +1107,18 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should update an existing user role without a description', async () => {
+    it('should update an existing user authority without a description', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
-      const { id, name, createdAt } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id, name, createdAt } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + id)
+        .put('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           name,
@@ -1129,22 +1137,22 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should update an existing user role with a description length equal to 2 character', async () => {
+    it('should update an existing user authority with a description length equal to 2 character', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
-      const { id, name, createdAt } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id, name, createdAt } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + id)
+        .put('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           name,
-          description: TestData.UserRole.ValidDescriptionExactMinLength,
+          description: TestData.UserAuthority.ValidDescriptionExactMinLength,
         })
         .expect(200)
         .expect(({ body }) => {
@@ -1153,7 +1161,8 @@ describe('UserRoleController (e2e)', () => {
             expect.objectContaining({
               id,
               name,
-              description: TestData.UserRole.ValidDescriptionExactMinLength,
+              description:
+                TestData.UserAuthority.ValidDescriptionExactMinLength,
               createdAt: createdAt.toISOString(),
               updatedAt: expect.any(String),
             }),
@@ -1161,22 +1170,23 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to update an existing user role with a description length shorter than 2 character', async () => {
+    it('should fail to update an existing user authority with a description length shorter than 2 character', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
-      const { id, name } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id, name } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + id)
+        .put('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           name,
-          description: TestData.UserRole.InvalidDescriptionLessThanMinLength,
+          description:
+            TestData.UserAuthority.InvalidDescriptionLessThanMinLength,
         })
         .expect(400)
         .expect(({ body }) => {
@@ -1198,22 +1208,23 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should update an existing user role with a description length equal to 128 characters', async () => {
+    it('should update an existing user authority with a description length equal to 128 characters', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
-      const { id, name, createdAt } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id, name, createdAt } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + id)
+        .put('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           name,
-          description: TestData.UserRole.ValidNameDescriptionExactMaxLength,
+          description:
+            TestData.UserAuthority.ValidNameDescriptionExactMaxLength,
         })
         .expect(200)
         .expect(({ body }) => {
@@ -1222,7 +1233,8 @@ describe('UserRoleController (e2e)', () => {
             expect.objectContaining({
               id,
               name,
-              description: TestData.UserRole.ValidNameDescriptionExactMaxLength,
+              description:
+                TestData.UserAuthority.ValidNameDescriptionExactMaxLength,
               createdAt: createdAt.toISOString(),
               updatedAt: expect.any(String),
             }),
@@ -1230,22 +1242,23 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to update an existing user role with a description length longer than 128 characters', async () => {
+    it('should fail to update an existing user authority with a description length longer than 128 characters', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
-      const { id, name } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id, name } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + id)
+        .put('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           name,
-          description: TestData.UserRole.InvalidDescriptionMoreThanMaxLength,
+          description:
+            TestData.UserAuthority.InvalidDescriptionMoreThanMaxLength,
         })
         .expect(400)
         .expect(({ body }) => {
@@ -1266,22 +1279,22 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail update an existing user role when missing required authority', async () => {
+    it('should fail update an existing user authority when missing required authority', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.REGULAR_USER,
       );
 
-      const { id } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + id)
+        .put('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.SecondaryName,
-          description: TestData.UserRole.SecondaryDescription,
+          name: TestData.UserAuthority.SecondaryName,
+          description: TestData.UserAuthority.SecondaryDescription,
         })
         .expect(403)
         .expect(({ body }) => {
@@ -1293,19 +1306,19 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail update an existing user role without an access token', async () => {
+    it('should fail update an existing user authority without an access token', async () => {
       await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
-      const { id } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + id)
+        .put('/user_authorities/' + id)
         .send({
-          name: TestData.UserRole.SecondaryName,
-          description: TestData.UserRole.SecondaryDescription,
+          name: TestData.UserAuthority.SecondaryName,
+          description: TestData.UserAuthority.SecondaryDescription,
         })
         .expect(401)
         .expect(({ body }) => {
@@ -1317,23 +1330,23 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail update an existing user role with an expired access token', async () => {
+    it('should fail update an existing user authority with an expired access token', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
         true,
       );
 
-      const { id } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .put('/user_roles/' + id)
+        .put('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          name: TestData.UserRole.SecondaryName,
-          description: TestData.UserRole.SecondaryDescription,
+          name: TestData.UserAuthority.SecondaryName,
+          description: TestData.UserAuthority.SecondaryDescription,
         })
         .expect(401)
         .expect(({ body }) => {
@@ -1348,19 +1361,19 @@ describe('UserRoleController (e2e)', () => {
 
   ///
 
-  describe('/user_roles/:userRoleId (DELETE)', () => {
-    it('should delete an existing user role', async () => {
+  describe('/user_authorities/:userAuthorityId (DELETE)', () => {
+    it('should delete an existing user authority', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
-      const { id } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .delete('/user_roles/' + id)
+        .delete('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .expect(204)
         .expect(({ body }) => {
@@ -1368,36 +1381,36 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to delete a non existing user role', async () => {
+    it('should fail to delete a non existing user authority', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
 
       return request(app.getHttpServer())
-        .delete('/user_roles/' + TestData.UserRole.NonExistingId)
+        .delete('/user_authorities/' + TestData.UserAuthority.NonExistingId)
         .set({ Authorization: 'Bearer ' + accessToken })
         .expect(404)
         .expect(({ body }) => {
           expect(body).toBeObject();
           expect(body).toStrictEqual({
             statusCode: 404,
-            message: `Role with id \`${TestData.UserRole.NonExistingId}\` was not found.`,
+            message: `Authority with id \`${TestData.UserAuthority.NonExistingId}\` was not found.`,
           });
         });
     });
 
-    it('should fail to delete an existing user role when missing required authority', async () => {
+    it('should fail to delete an existing user authority when missing required authority', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.REGULAR_USER,
       );
 
-      const { id } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .delete('/user_roles/' + id)
+        .delete('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .expect(403)
         .expect(({ body }) => {
@@ -1409,16 +1422,16 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to delete an existing user role without an access token', async () => {
+    it('should fail to delete an existing user authority without an access token', async () => {
       await app.createAuthenticatedUser(UserRole.SUPER_USER);
 
-      const { id } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .delete('/user_roles/' + id)
+        .delete('/user_authorities/' + id)
         .expect(401)
         .expect(({ body }) => {
           expect(body).toBeObject();
@@ -1429,19 +1442,19 @@ describe('UserRoleController (e2e)', () => {
         });
     });
 
-    it('should fail to delete an existing user role with an expired access token', async () => {
+    it('should fail to delete an existing user authority with an expired access token', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
         true,
       );
 
-      const { id } = await app.createUserRole(
-        TestData.UserRole.PrimaryName,
-        TestData.UserRole.PrimaryDescription,
+      const { id } = await app.createUserAuthority(
+        TestData.UserAuthority.PrimaryName,
+        TestData.UserAuthority.PrimaryDescription,
       );
 
       return request(app.getHttpServer())
-        .delete('/user_roles/' + id)
+        .delete('/user_authorities/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .expect(401)
         .expect(({ body }) => {

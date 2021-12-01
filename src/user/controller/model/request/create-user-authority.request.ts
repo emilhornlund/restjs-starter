@@ -1,26 +1,52 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, Matches, MaxLength, MinLength } from 'class-validator';
+import {
+  ApiUserAuthorityDescription,
+  ApiUserAuthorityDescriptionExample,
+  ApiUserAuthorityDescriptionMaxLength,
+  ApiUserAuthorityDescriptionMinLength,
+  ApiUserAuthorityDescriptionPattern,
+  ApiUserAuthorityDescriptionTitle,
+  ApiUserAuthorityNameDescription,
+  ApiUserAuthorityNameExample,
+  ApiUserAuthorityNameMaxLength,
+  ApiUserAuthorityNameMinLength,
+  ApiUserAuthorityNamePattern,
+  ApiUserAuthorityNameTitle,
+} from '../../constant/api-user-authority.constants';
 
 export class CreateUserAuthorityRequest {
   @ApiProperty({
-    title: 'Name',
-    description: '',
-    example: 'AUTHORITY_ADMINISTRATION:read',
+    title: ApiUserAuthorityNameTitle,
+    description: ApiUserAuthorityNameDescription,
+    minLength: ApiUserAuthorityNameMinLength,
+    maxLength: ApiUserAuthorityNameMaxLength,
+    pattern: ApiUserAuthorityNamePattern.toString(),
+    example: ApiUserAuthorityNameExample,
   })
-  @MinLength(8)
-  @MaxLength(32)
-  @Matches(/[A-Z_]{8,32}:(read|write)/, {
-    message: (p) => `${p.property} invalid`,
+  @MinLength(ApiUserAuthorityNameMinLength)
+  @MaxLength(ApiUserAuthorityNameMaxLength)
+  @Matches(ApiUserAuthorityNamePattern, {
+    message: (arg) =>
+      `${arg.property} can only contain uppercase letters and underscores followed by either :read or :write`,
   })
   name: string;
 
   @ApiProperty({
-    title: 'Description',
-    description: '',
-    example: 'The authority description',
+    title: ApiUserAuthorityDescriptionTitle,
+    description: ApiUserAuthorityDescription,
     required: false,
+    nullable: true,
+    minLength: ApiUserAuthorityDescriptionMinLength,
+    maxLength: ApiUserAuthorityDescriptionMaxLength,
+    pattern: ApiUserAuthorityDescriptionPattern.toString(),
+    example: ApiUserAuthorityDescriptionExample,
   })
-  @MaxLength(128)
+  @MinLength(ApiUserAuthorityDescriptionMinLength)
+  @MaxLength(ApiUserAuthorityDescriptionMaxLength)
+  @Matches(ApiUserAuthorityDescriptionPattern, {
+    message: (arg) => `${arg.property} can only contain word characters`,
+  })
   @IsOptional()
-  description: string;
+  description?: string;
 }

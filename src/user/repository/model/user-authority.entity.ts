@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { UserRoleEntity } from './user-role.entity';
 
@@ -16,10 +17,11 @@ export class UserAuthorityEntity {
   @Column({ unique: true })
   name: string;
 
-  @Column()
-  description: string;
+  @Column({ nullable: true })
+  description?: string;
 
   @ManyToMany(() => UserRoleEntity)
+  @JoinTable()
   userRoles: UserRoleEntity[];
 
   @CreateDateColumn({ name: 'created_at' })

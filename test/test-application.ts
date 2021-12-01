@@ -4,6 +4,8 @@ import { Connection } from 'typeorm';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { AppModule } from '../src/app.module';
 import {
+  UserAuthorityDto,
+  UserAuthorityService,
   UserDto,
   UserRole,
   UserRoleAuthority,
@@ -103,6 +105,27 @@ export class TestApplication {
       await userRoleService.createUserRole(
         `${TestData.UserRole.NamePrefix}_${i}`,
         TestData.UserRole.PrimaryDescription,
+      );
+    }
+  }
+
+  async createUserAuthority(
+    name: string,
+    description: string,
+  ): Promise<UserAuthorityDto> {
+    return this.app
+      .get<UserAuthorityService>(UserAuthorityService)
+      .createUserAuthority(name, description);
+  }
+
+  async createUserAuthorities(from: number, count: number) {
+    const userAuthorityService = await this.app.get<UserAuthorityService>(
+      UserAuthorityService,
+    );
+    for (let i = from; i < from + count; i++) {
+      await userAuthorityService.createUserAuthority(
+        `${TestData.UserAuthority.NamePrefix}_${i}:read`,
+        TestData.UserAuthority.PrimaryDescription,
       );
     }
   }
