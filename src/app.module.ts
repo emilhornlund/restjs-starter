@@ -1,20 +1,18 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommonModule } from './common/common.module';
-import { BaseConfigModule } from './config/base-config.module';
-import { BaseConfigService } from './config/service';
+import { ConfigService } from './common/service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
     CommonModule,
-    BaseConfigModule,
     TypeOrmModule.forRootAsync({
-      imports: [BaseConfigModule],
-      useFactory: async (configService: BaseConfigService) =>
+      imports: [CommonModule],
+      useFactory: async (configService: ConfigService) =>
         await configService.typeOrmModuleOptions,
-      inject: [BaseConfigService],
+      inject: [ConfigService],
     }),
     AuthModule,
     UserModule,

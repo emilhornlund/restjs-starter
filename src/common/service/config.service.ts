@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigService as NestConfigService } from '@nestjs/config';
 import { JwtModuleOptions } from '@nestjs/jwt';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm/dist/interfaces/typeorm-options.interface';
 import * as fs from 'fs';
@@ -8,12 +8,12 @@ import { Algorithm } from 'jsonwebtoken';
 import { DatabaseConfig, Environments, HttpConfig, JwtConfig } from './index';
 
 @Injectable()
-export class BaseConfigService {
+export class ConfigService {
   private static JWT_ALGORITHM_HS256: Algorithm = 'HS256';
   private static JWT_ALGORITHM_RS256: Algorithm = 'RS256';
   private static JWT_ISSUER = 'filebuddy';
 
-  constructor(private configService: ConfigService) {}
+  constructor(private configService: NestConfigService) {}
 
   get http(): HttpConfig {
     return this.configService.get<HttpConfig>('http');
@@ -34,8 +34,8 @@ export class BaseConfigService {
     const privateKeyContent = privateKeyPath && fs.readFileSync(privateKeyPath);
 
     const algorithm = !!secret
-      ? BaseConfigService.JWT_ALGORITHM_HS256
-      : BaseConfigService.JWT_ALGORITHM_RS256;
+      ? ConfigService.JWT_ALGORITHM_HS256
+      : ConfigService.JWT_ALGORITHM_RS256;
 
     return Promise.resolve({
       secret,
@@ -44,12 +44,12 @@ export class BaseConfigService {
       signOptions: {
         algorithm,
         audience,
-        issuer: BaseConfigService.JWT_ISSUER,
+        issuer: ConfigService.JWT_ISSUER,
       },
       verifyOptions: {
         algorithm,
         audience,
-        issuer: BaseConfigService.JWT_ISSUER,
+        issuer: ConfigService.JWT_ISSUER,
       },
     });
   }
@@ -80,7 +80,7 @@ export class BaseConfigService {
 
   get typeOrmModuleOptions(): Promise<TypeOrmModuleOptions> {
     return this.configService.get<string>('env') === Environments.TEST
-      ? BaseConfigService.testTypeOrmModuleOptions
+      ? ConfigService.testTypeOrmModuleOptions
       : this.postgresTypeOrmModuleOptions;
   }
 }

@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { BaseConfigService } from './config/service';
+import { ConfigService } from './common/service';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { INestApplication } from '@nestjs/common';
 
@@ -8,7 +8,7 @@ import { INestApplication } from '@nestjs/common';
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
 
-  const config = await app.get<BaseConfigService>(BaseConfigService);
+  const config = await app.get<ConfigService>(ConfigService);
 
   applySwaggerConfig(app);
 

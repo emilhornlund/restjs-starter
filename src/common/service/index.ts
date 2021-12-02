@@ -9,4 +9,4 @@ export * from './model/jwt-config.interface';
 // -------------------------------------------------------------------------
 // Services
 // -------------------------------------------------------------------------
-export * from './base-config.service';
+export * from './config.service';
