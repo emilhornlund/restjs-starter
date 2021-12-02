@@ -1,27 +1,45 @@
 import { ApiProperty } from '@nestjs/swagger';
+import {
+  ApiPageNumberDescription,
+  ApiPageNumberExample,
+  ApiPageNumberTitle,
+  ApiPageSizeDescription,
+  ApiPageSizeExample,
+  ApiPageSizeTitle,
+  ApiPageTotalElementsDescription,
+  ApiPageTotalElementsExample,
+  ApiPageTotalElementsTitle,
+  ApiPageTotalPagesDescription,
+  ApiPageTotalPagesExample,
+  ApiPageTotalPagesTitle,
+} from '../../constant/api-page.constants';
 
 export class PageResponse {
   @ApiProperty({
-    title: 'Page number',
-    description: 'Page number',
+    title: ApiPageNumberTitle,
+    description: ApiPageNumberDescription,
+    example: ApiPageNumberExample,
   })
   number: number;
 
   @ApiProperty({
-    title: 'Page size',
-    description: 'Page size',
+    title: ApiPageSizeTitle,
+    description: ApiPageSizeDescription,
+    example: ApiPageSizeExample,
   })
   size: number;
 
   @ApiProperty({
-    title: 'Total pages',
-    description: 'Total number of pages',
+    title: ApiPageTotalPagesTitle,
+    description: ApiPageTotalPagesDescription,
+    example: ApiPageTotalPagesExample,
   })
   totalPages: number;
 
   @ApiProperty({
-    title: 'Total elements',
-    description: 'Total number of elements',
+    title: ApiPageTotalElementsTitle,
+    description: ApiPageTotalElementsDescription,
+    example: ApiPageTotalElementsExample,
   })
   totalElements: number;
 }

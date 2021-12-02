@@ -1,20 +1,26 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiQuery } from '@nestjs/swagger';
+import {
+  ApiPageNumberDescription,
+  ApiPageNumberExample,
+  ApiPageSizeDescription,
+  ApiPageSizeExample,
+} from '../../constant/api-page.constants';
 
 export const ApiPageableQueryParam = () =>
   applyDecorators(
     ApiQuery({
       name: 'page',
       type: Number,
-      description: 'Number of the page',
+      description: ApiPageNumberDescription,
+      example: ApiPageNumberExample,
       required: false,
-      example: 0,
     }),
     ApiQuery({
       name: 'size',
       type: Number,
-      description: 'The number of elements to include per page.',
+      description: ApiPageSizeDescription,
+      example: ApiPageSizeExample,
       required: false,
-      example: 20,
     }),
   );
