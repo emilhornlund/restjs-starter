@@ -37,6 +37,7 @@ import {
 } from '../../common/decorator';
 import { HasUserAuthority } from '../../auth/controller/decorator/has-authority.decorator';
 import {
+  ApiForbiddenResponse,
   ApiUnauthorizedResponse,
   ApiValidationFailedResponse,
 } from '../../common/decorator/api/api-response.decorator';
@@ -60,6 +61,7 @@ export class UserController {
     type: PagedUserResponse,
   })
   @ApiUnauthorizedResponse()
+  @ApiForbiddenResponse()
   @HasUserAuthority(UserAuthority.USER_ADMINISTRATION_READ)
   public findAllUsers(
     @PageableQueryParam() pageable: PageableRequest,
@@ -78,6 +80,7 @@ export class UserController {
   @ApiUserCreatedResponse()
   @ApiValidationFailedResponse()
   @ApiUnauthorizedResponse()
+  @ApiForbiddenResponse()
   @HasUserAuthority(UserAuthority.USER_ADMINISTRATION_WRITE)
   public createUser(
     @Body() createUserRequest: CreateUserRequest,
@@ -101,6 +104,7 @@ export class UserController {
   @ApiUserIdParam()
   @ApiUserOkResponse()
   @ApiUnauthorizedResponse()
+  @ApiForbiddenResponse()
   @ApiUserNotFoundResponse()
   @HasUserAuthority(UserAuthority.USER_ADMINISTRATION_READ)
   public findUser(@UserIdParam() userId: string): Promise<UserResponse> {
@@ -118,6 +122,7 @@ export class UserController {
   @ApiUserOkResponse()
   @ApiValidationFailedResponse()
   @ApiUnauthorizedResponse()
+  @ApiForbiddenResponse()
   @ApiUserNotFoundResponse()
   @HasUserAuthority(UserAuthority.USER_ADMINISTRATION_WRITE)
   public updateUser(
@@ -139,6 +144,7 @@ export class UserController {
   @ApiUserIdParam()
   @ApiNoContentResponse({ description: 'No Content' })
   @ApiUnauthorizedResponse()
+  @ApiForbiddenResponse()
   @ApiUserNotFoundResponse()
   @HasUserAuthority(UserAuthority.USER_ADMINISTRATION_WRITE)
   public deleteUser(@UserIdParam() userId: string) {
