@@ -6,7 +6,7 @@ import {
   ApiUserRoleNameDescription,
   ApiUserRoleNameTitle,
   ApiUserRoleDescriptionTitle,
-  ApiUserRoleDescription,
+  ApiUserRoleDescriptionDescription,
   ApiUserRoleIdTitle,
   ApiUserRoleIdDescription,
   ApiUserRoleCreatedAtTitle,
@@ -36,7 +36,7 @@ export class UserRoleResponse {
 
   @ApiProperty({
     title: ApiUserRoleDescriptionTitle,
-    description: ApiUserRoleDescription,
+    description: ApiUserRoleDescriptionDescription,
     example: ApiUserRoleDescriptionExample,
     required: false,
     nullable: true,

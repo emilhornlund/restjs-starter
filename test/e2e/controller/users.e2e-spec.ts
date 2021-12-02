@@ -286,6 +286,8 @@ describe('UserController (e2e)', () => {
               {
                 field: 'username',
                 constraints: {
+                  matches:
+                    'username can only contain alphanumeric characters, underscores and dots',
                   minLength:
                     'username must be longer than or equal to 2 characters',
                 },

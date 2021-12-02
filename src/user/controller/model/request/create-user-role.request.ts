@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, Matches, MaxLength, MinLength } from 'class-validator';
 import {
-  ApiUserRoleDescription,
+  ApiUserRoleDescriptionDescription,
   ApiUserRoleDescriptionExample,
   ApiUserRoleDescriptionMaxLength,
   ApiUserRoleDescriptionMinLength,
@@ -34,7 +34,7 @@ export class CreateUserRoleRequest {
 
   @ApiProperty({
     title: ApiUserRoleDescriptionTitle,
-    description: ApiUserRoleDescription,
+    description: ApiUserRoleDescriptionDescription,
     required: false,
     nullable: true,
     minLength: ApiUserRoleDescriptionMinLength,
