@@ -29,7 +29,7 @@ describe('AuthController (e2e)', () => {
         aud: 'test',
         exp: expect.any(Number),
         iat: expect.any(Number),
-        iss: 'filebuddy',
+        iss: 'restjs-starter',
       }),
     );
   };
