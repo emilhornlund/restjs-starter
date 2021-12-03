@@ -58,12 +58,12 @@ describe('ConfigService', () => {
         signOptions: {
           algorithm: 'HS256',
           audience: 'test',
-          issuer: 'filebuddy',
+          issuer: 'restjs-starter',
         },
         verifyOptions: {
           algorithm: 'HS256',
           audience: 'test',
-          issuer: 'filebuddy',
+          issuer: 'restjs-starter',
         },
       });
     });
@@ -88,12 +88,12 @@ describe('ConfigService', () => {
         signOptions: {
           algorithm: 'RS256',
           audience: 'test',
-          issuer: 'filebuddy',
+          issuer: 'restjs-starter',
         },
         verifyOptions: {
           algorithm: 'RS256',
           audience: 'test',
-          issuer: 'filebuddy',
+          issuer: 'restjs-starter',
         },
       });
     });

@@ -1,11 +1,11 @@
 {
-  "name": "file-buddy-service",
+  "name": "restjs-starter",
   "version": "0.0.1",
   "description": "",
   "author": "",
   "private": true,
   "license": "MIT",
-  "repository": "https://github.com/emilhornlund/file-buddy-service",
+  "repository": "https://github.com/emilhornlund/restjs-starter",
   "scripts": {
     "prepare": "husky install",
     "prebuild": "rimraf dist",

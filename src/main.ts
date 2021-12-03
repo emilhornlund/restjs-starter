@@ -17,8 +17,8 @@ import { INestApplication } from '@nestjs/common';
 
 const applySwaggerConfig = (app: INestApplication) => {
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('File Buddy Service')
-    .setDescription('The File Buddy Service API')
+    .setTitle('RESTJS Starter')
+    .setDescription('The RESTJS Starter API')
     .setVersion('1.0')
     .addBearerAuth()
     .addTag('Auth', 'Authentication endpoints')

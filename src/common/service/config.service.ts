@@ -11,7 +11,7 @@ import { DatabaseConfig, Environments, HttpConfig, JwtConfig } from './index';
 export class ConfigService {
   private static JWT_ALGORITHM_HS256: Algorithm = 'HS256';
   private static JWT_ALGORITHM_RS256: Algorithm = 'RS256';
-  private static JWT_ISSUER = 'filebuddy';
+  private static JWT_ISSUER = 'restjs-starter';
 
   constructor(private configService: NestConfigService) {}
 
