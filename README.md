@@ -4,6 +4,7 @@ A REST [Node.js](http://nodejs.org) starter project written in typescript and bu
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/emilhornlund/restjs-starter/actions/workflows/main.yml/badge.svg)](https://github.com/emilhornlund/restjs-starter/actions/workflows/main.yml)
+[![Coverage Status](https://coveralls.io/repos/github/emilhornlund/restjs-starter/badge.svg?branch=master)](https://coveralls.io/github/emilhornlund/restjs-starter?branch=master)
 
 ## Installation
 
