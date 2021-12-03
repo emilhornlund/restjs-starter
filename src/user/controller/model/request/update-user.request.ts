@@ -4,6 +4,7 @@ import {
   ApiUserEmailDescription,
   ApiUserEmailExample,
   ApiUserEmailTitle,
+  ApiUserPasswordPattern,
   ApiUserUsernameDescription,
   ApiUserUsernameExample,
   ApiUserUsernameMaxLength,
@@ -25,7 +26,7 @@ export class UpdateUserRequest {
   @MaxLength(ApiUserUsernameMaxLength)
   @Matches(ApiUserUsernamePattern, {
     message: (arg) =>
-      `${arg.property} can only contain alphanumeric characters, underscores and dots`,
+      `${arg.property} can only contain alphanumeric characters`,
   })
   username: string;
 

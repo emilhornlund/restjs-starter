@@ -1,7 +1,7 @@
 import * as request from 'supertest';
-import { TestApplication } from '../../test-application';
-import { TestData } from '../../test-data';
-import { UserRole } from '../../../src/user/service';
+import { TestApplication } from '../test-application';
+import { TestData } from '../test-data';
+import { UserRole } from '../../src/user/service';
 
 describe('UserController (e2e)', () => {
   const app: TestApplication = new TestApplication();
@@ -19,8 +19,9 @@ describe('UserController (e2e)', () => {
       .fill(0)
       .map((_, i) => ({
         id: expect.any(String),
-        username: TestData.Username(from + i),
-        email: TestData.Email(from + i),
+        username: TestData.User.UsernamePrefix + (from + i),
+        email:
+          TestData.User.UsernamePrefix + (from + i) + TestData.User.EmailSuffix,
         role: UserRole.REGULAR_USER,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
@@ -95,6 +96,56 @@ describe('UserController (e2e)', () => {
               },
             }),
           );
+        });
+    });
+
+    it('should fail to get the first page of 5 users with invalid page number', async () => {
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
+      await app.createUsers(2, 10, UserRole.REGULAR_USER);
+
+      return request(app.getHttpServer())
+        .get('/users?page=NaN&size=5')
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .expect(400)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 400,
+            message: 'Validation failed',
+            validationErrors: [
+              {
+                field: 'page',
+                constraints: { isNumber: 'page is not a valid number' },
+              },
+            ],
+          });
+        });
+    });
+
+    it('should fail to get the first page of an invalid page size of users', async () => {
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
+      await app.createUsers(2, 10, UserRole.REGULAR_USER);
+
+      return request(app.getHttpServer())
+        .get('/users?page=0&size=NaN')
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .expect(400)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 400,
+            message: 'Validation failed',
+            validationErrors: [
+              {
+                field: 'size',
+                constraints: { isNumber: 'size is not a valid number' },
+              },
+            ],
+          });
         });
     });
 
@@ -187,9 +238,9 @@ describe('UserController (e2e)', () => {
         .post('/users')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          username: TestData.SecondaryUsername,
-          password: TestData.SecondaryPassword,
-          email: TestData.SecondaryEmail,
+          username: TestData.User.UsernameSecondary,
+          password: TestData.User.PasswordSecondary,
+          email: TestData.User.EmailSecondary,
         })
         .expect(201)
         .expect(({ body }) => {
@@ -197,8 +248,8 @@ describe('UserController (e2e)', () => {
           expect(body).toStrictEqual(
             expect.objectContaining({
               id: expect.any(String),
-              username: TestData.SecondaryUsername,
-              email: TestData.SecondaryEmail,
+              username: TestData.User.UsernameSecondary,
+              email: TestData.User.EmailSecondary,
               createdAt: expect.any(String),
               updatedAt: expect.any(String),
             }),
@@ -215,27 +266,21 @@ describe('UserController (e2e)', () => {
         .post('/users')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          username: TestData.PrimaryUsername,
-          password: TestData.PrimaryPassword,
-          email: TestData.PrimaryEmail,
+          username: TestData.User.UsernamePrimary,
+          password: TestData.User.PasswordSecondary,
+          email: TestData.User.EmailSecondary,
         })
-        .expect(400)
+        .expect(409)
         .expect(({ body }) => {
           expect(body).toBeObject();
           expect(body).toStrictEqual({
-            statusCode: 400,
-            message: 'Validation failed',
-            validationErrors: [
-              {
-                field: 'username',
-                constraints: { isUsernameUnique: 'username already exists' },
-              },
-            ],
+            statusCode: 409,
+            message: 'Username must be unique.',
           });
         });
     });
 
-    it('should create a new user with a username equal to 2 characters', async () => {
+    it('should create a new user with a username containing exactly the minimum allowed number of valid characters', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
@@ -244,9 +289,9 @@ describe('UserController (e2e)', () => {
         .post('/users')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          username: TestData.ShortUsername,
-          password: TestData.SecondaryPassword,
-          email: TestData.SecondaryEmail,
+          username: TestData.User.UsernameEqualMinLength,
+          password: TestData.User.PasswordSecondary,
+          email: TestData.User.EmailSecondary,
         })
         .expect(201)
         .expect(({ body }) => {
@@ -254,8 +299,8 @@ describe('UserController (e2e)', () => {
           expect(body).toStrictEqual(
             expect.objectContaining({
               id: expect.any(String),
-              username: TestData.ShortUsername,
-              email: TestData.SecondaryEmail,
+              username: TestData.User.UsernameEqualMinLength,
+              email: TestData.User.EmailSecondary,
               createdAt: expect.any(String),
               updatedAt: expect.any(String),
             }),
@@ -263,7 +308,7 @@ describe('UserController (e2e)', () => {
         });
     });
 
-    it('should fail to create a new user with a username shorter than 2 characters', async () => {
+    it('should fail to create a new user with a username containing exactly one character less than the minimum allowed number of valid characters', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
@@ -272,9 +317,9 @@ describe('UserController (e2e)', () => {
         .post('/users')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          username: TestData.InvalidTooShortUsername,
-          password: TestData.PrimaryPassword,
-          email: TestData.PrimaryEmail,
+          username: TestData.User.UsernameLessThanMinLength,
+          password: TestData.User.PasswordSecondary,
+          email: TestData.User.EmailSecondary,
         })
         .expect(400)
         .expect(({ body }) => {
@@ -286,10 +331,9 @@ describe('UserController (e2e)', () => {
               {
                 field: 'username',
                 constraints: {
-                  matches:
-                    'username can only contain alphanumeric characters, underscores and dots',
+                  matches: 'username can only contain alphanumeric characters',
                   minLength:
-                    'username must be longer than or equal to 2 characters',
+                    'username must be longer than or equal to 4 characters',
                 },
               },
             ],
@@ -297,7 +341,7 @@ describe('UserController (e2e)', () => {
         });
     });
 
-    it('should create a new user with a username equal to 20 characters', async () => {
+    it('should create a new user with a username containing exactly the maximum allowed number of valid characters', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
@@ -306,9 +350,9 @@ describe('UserController (e2e)', () => {
         .post('/users')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          username: TestData.LongUsername,
-          password: TestData.SecondaryPassword,
-          email: TestData.SecondaryEmail,
+          username: TestData.User.UsernameEqualMaxLength,
+          password: TestData.User.PasswordSecondary,
+          email: TestData.User.EmailSecondary,
         })
         .expect(201)
         .expect(({ body }) => {
@@ -316,8 +360,8 @@ describe('UserController (e2e)', () => {
           expect(body).toStrictEqual(
             expect.objectContaining({
               id: expect.any(String),
-              username: TestData.LongUsername,
-              email: TestData.SecondaryEmail,
+              username: TestData.User.UsernameEqualMaxLength,
+              email: TestData.User.EmailSecondary,
               createdAt: expect.any(String),
               updatedAt: expect.any(String),
             }),
@@ -325,7 +369,7 @@ describe('UserController (e2e)', () => {
         });
     });
 
-    it('should fail to create a new user with a username longer than 20 characters', async () => {
+    it('should fail to create a new user with a username containing exactly one character more than the maximum allowed number of valid characters', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
@@ -334,9 +378,9 @@ describe('UserController (e2e)', () => {
         .post('/users')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          username: TestData.InvalidTooLongUsername,
-          password: TestData.PrimaryPassword,
-          email: TestData.PrimaryEmail,
+          username: TestData.User.UsernameGreaterThanMaxLength,
+          password: TestData.User.PasswordSecondary,
+          email: TestData.User.EmailSecondary,
         })
         .expect(400)
         .expect(({ body }) => {
@@ -348,11 +392,66 @@ describe('UserController (e2e)', () => {
               {
                 field: 'username',
                 constraints: {
+                  matches: 'username can only contain alphanumeric characters',
                   maxLength:
                     'username must be shorter than or equal to 20 characters',
                 },
               },
             ],
+          });
+        });
+    });
+
+    it('should fail to create a new user with a username containing invalid special characters', async () => {
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
+
+      return request(app.getHttpServer())
+        .post('/users')
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          username: TestData.User.UsernameInvalidCharacters,
+          password: TestData.User.PasswordSecondary,
+          email: TestData.User.EmailSecondary,
+        })
+        .expect(400)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 400,
+            message: 'Validation failed',
+            validationErrors: [
+              {
+                field: 'username',
+                constraints: {
+                  matches: 'username can only contain alphanumeric characters',
+                },
+              },
+            ],
+          });
+        });
+    });
+
+    it('should fail to create a new user with a non unique email', async () => {
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
+
+      return request(app.getHttpServer())
+        .post('/users')
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          username: TestData.User.UsernameSecondary,
+          password: TestData.User.PasswordSecondary,
+          email: TestData.User.EmailPrimary,
+        })
+        .expect(409)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 409,
+            message: 'Email must be unique.',
           });
         });
     });
@@ -366,9 +465,9 @@ describe('UserController (e2e)', () => {
         .post('/users')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          username: TestData.PrimaryUsername,
-          password: TestData.PrimaryPassword,
-          email: TestData.InvalidEmail,
+          username: TestData.User.UsernameSecondary,
+          password: TestData.User.PasswordSecondary,
+          email: TestData.User.EmailInvalid,
         })
         .expect(400)
         .expect(({ body }) => {
@@ -386,6 +485,128 @@ describe('UserController (e2e)', () => {
         });
     });
 
+    it('should create a new user with a password containing exactly the minimum allowed number of valid characters', async () => {
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
+
+      return request(app.getHttpServer())
+        .post('/users')
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          username: TestData.User.UsernameSecondary,
+          password: TestData.User.PasswordEqualMinLength,
+          email: TestData.User.EmailSecondary,
+        })
+        .expect(201)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual(
+            expect.objectContaining({
+              id: expect.any(String),
+              username: TestData.User.UsernameSecondary,
+              email: TestData.User.EmailSecondary,
+              createdAt: expect.any(String),
+              updatedAt: expect.any(String),
+            }),
+          );
+        });
+    });
+
+    it('should fail to create a new user with a password containing exactly one character less than the minimum allowed number of valid characters', async () => {
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
+
+      return request(app.getHttpServer())
+        .post('/users')
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          username: TestData.User.UsernameSecondary,
+          password: TestData.User.PasswordLessThanMinLength,
+          email: TestData.User.EmailSecondary,
+        })
+        .expect(400)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 400,
+            message: 'Validation failed',
+            validationErrors: [
+              {
+                field: 'password',
+                constraints: {
+                  matches: 'password can only contain word characters',
+                  minLength:
+                    'password must be longer than or equal to 8 characters',
+                },
+              },
+            ],
+          });
+        });
+    });
+
+    it('should create a new user with a password containing exactly the maximum allowed number of valid characters', async () => {
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
+
+      return request(app.getHttpServer())
+        .post('/users')
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          username: TestData.User.UsernameSecondary,
+          password: TestData.User.PasswordEqualMaxLength,
+          email: TestData.User.EmailSecondary,
+        })
+        .expect(201)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual(
+            expect.objectContaining({
+              id: expect.any(String),
+              username: TestData.User.UsernameSecondary,
+              email: TestData.User.EmailSecondary,
+              createdAt: expect.any(String),
+              updatedAt: expect.any(String),
+            }),
+          );
+        });
+    });
+
+    it('should fail to create a new user with a password containing exactly one character more than the maximum allowed number of valid characters', async () => {
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
+
+      return request(app.getHttpServer())
+        .post('/users')
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          username: TestData.User.UsernameSecondary,
+          password: TestData.User.PasswordGreaterThanMaxLength,
+          email: TestData.User.EmailSecondary,
+        })
+        .expect(400)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 400,
+            message: 'Validation failed',
+            validationErrors: [
+              {
+                field: 'password',
+                constraints: {
+                  matches: 'password can only contain word characters',
+                  maxLength:
+                    'password must be shorter than or equal to 128 characters',
+                },
+              },
+            ],
+          });
+        });
+    });
+
     it('should fail to create a new user when missing required authority', async () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.REGULAR_USER,
@@ -395,9 +616,9 @@ describe('UserController (e2e)', () => {
         .post('/users')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          username: TestData.SecondaryUsername,
-          password: TestData.SecondaryPassword,
-          email: TestData.SecondaryEmail,
+          username: TestData.User.UsernameSecondary,
+          password: TestData.User.PasswordSecondary,
+          email: TestData.User.EmailSecondary,
         })
         .expect(403)
         .expect(({ body }) => {
@@ -415,9 +636,9 @@ describe('UserController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/users')
         .send({
-          username: TestData.SecondaryUsername,
-          password: TestData.SecondaryPassword,
-          email: TestData.SecondaryEmail,
+          username: TestData.User.UsernameSecondary,
+          password: TestData.User.PasswordSecondary,
+          email: TestData.User.EmailSecondary,
         })
         .expect(401)
         .expect(({ body }) => {
@@ -439,9 +660,9 @@ describe('UserController (e2e)', () => {
         .post('/users')
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          username: TestData.SecondaryUsername,
-          password: TestData.SecondaryPassword,
-          email: TestData.SecondaryEmail,
+          username: TestData.User.UsernameSecondary,
+          password: TestData.User.PasswordSecondary,
+          email: TestData.User.EmailSecondary,
         })
         .expect(401)
         .expect(({ body }) => {
@@ -484,14 +705,14 @@ describe('UserController (e2e)', () => {
       );
 
       return request(app.getHttpServer())
-        .get('/users/' + TestData.NonExistingUserId)
+        .get('/users/' + TestData.User.NonExistingUserId)
         .set({ Authorization: 'Bearer ' + accessToken })
         .expect(404)
         .expect(({ body }) => {
           expect(body).toBeObject();
           expect(body).toStrictEqual({
             statusCode: 404,
-            message: `User with id \`${TestData.NonExistingUserId}\` was not found.`,
+            message: `User with id \`${TestData.User.NonExistingUserId}\` was not found.`,
           });
         });
     });
@@ -563,8 +784,8 @@ describe('UserController (e2e)', () => {
         .put('/users/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          username: TestData.SecondaryUsername,
-          email: TestData.SecondaryEmail,
+          username: TestData.User.UsernameSecondary,
+          email: TestData.User.EmailSecondary,
         })
         .expect(200)
         .expect(({ body }) => {
@@ -572,8 +793,8 @@ describe('UserController (e2e)', () => {
           expect(body).toStrictEqual(
             expect.objectContaining({
               id,
-              username: TestData.SecondaryUsername,
-              email: TestData.SecondaryEmail,
+              username: TestData.User.UsernameSecondary,
+              email: TestData.User.EmailSecondary,
               createdAt: createdAt.toISOString(),
               updatedAt: expect.any(String),
             }),
@@ -592,7 +813,7 @@ describe('UserController (e2e)', () => {
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           username,
-          email: TestData.SecondaryEmail,
+          email: TestData.User.EmailSecondary,
         })
         .expect(200)
         .expect(({ body }) => {
@@ -601,7 +822,7 @@ describe('UserController (e2e)', () => {
             expect.objectContaining({
               id,
               username,
-              email: TestData.SecondaryEmail,
+              email: TestData.User.EmailSecondary,
               createdAt: createdAt.toISOString(),
               updatedAt: expect.any(String),
             }),
@@ -615,18 +836,18 @@ describe('UserController (e2e)', () => {
       );
 
       return request(app.getHttpServer())
-        .put('/users/' + TestData.NonExistingUserId)
+        .put('/users/' + TestData.User.NonExistingUserId)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          username: TestData.SecondaryUsername,
-          email: TestData.SecondaryEmail,
+          username: TestData.User.UsernameSecondary,
+          email: TestData.User.EmailSecondary,
         })
         .expect(404)
         .expect(({ body }) => {
           expect(body).toBeObject();
           expect(body).toStrictEqual({
             statusCode: 404,
-            message: `User with id \`${TestData.NonExistingUserId}\` was not found.`,
+            message: `User with id \`${TestData.User.NonExistingUserId}\` was not found.`,
           });
         });
     });
@@ -644,7 +865,58 @@ describe('UserController (e2e)', () => {
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
           username,
-          email: TestData.SecondaryEmail,
+          email: TestData.User.EmailSecondary,
+        })
+        .expect(409)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 409,
+            message: 'Username must be unique.',
+          });
+        });
+    });
+
+    it('should update an existing user with a username containing exactly the minimum allowed number of valid characters', async () => {
+      const {
+        user: { id, createdAt },
+        accessToken,
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
+
+      return request(app.getHttpServer())
+        .put('/users/' + id)
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          username: TestData.User.UsernameEqualMinLength,
+          email: TestData.User.EmailSecondary,
+        })
+        .expect(200)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual(
+            expect.objectContaining({
+              id,
+              username: TestData.User.UsernameEqualMinLength,
+              email: TestData.User.EmailSecondary,
+              createdAt: createdAt.toISOString(),
+              updatedAt: expect.any(String),
+            }),
+          );
+        });
+    });
+
+    it('should fail to update an existing user with a username containing exactly one character less than the minimum allowed number of valid characters', async () => {
+      const {
+        user: { id },
+        accessToken,
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
+
+      return request(app.getHttpServer())
+        .put('/users/' + id)
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          username: TestData.User.UsernameLessThanMinLength,
+          email: TestData.User.EmailSecondary,
         })
         .expect(400)
         .expect(({ body }) => {
@@ -655,9 +927,130 @@ describe('UserController (e2e)', () => {
             validationErrors: [
               {
                 field: 'username',
-                constraints: { isUsernameUnique: 'username already exists' },
+                constraints: {
+                  matches: 'username can only contain alphanumeric characters',
+                  minLength:
+                    'username must be longer than or equal to 4 characters',
+                },
               },
             ],
+          });
+        });
+    });
+
+    it('should update an existing user with a username containing exactly the maximum allowed number of valid characters', async () => {
+      const {
+        user: { id, createdAt },
+        accessToken,
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
+
+      return request(app.getHttpServer())
+        .put('/users/' + id)
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          username: TestData.User.UsernameEqualMaxLength,
+          email: TestData.User.EmailSecondary,
+        })
+        .expect(200)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual(
+            expect.objectContaining({
+              id,
+              username: TestData.User.UsernameEqualMaxLength,
+              email: TestData.User.EmailSecondary,
+              createdAt: createdAt.toISOString(),
+              updatedAt: expect.any(String),
+            }),
+          );
+        });
+    });
+
+    it('should fail to update an existing user with a username containing exactly one character more than the maximum allowed number of valid characters', async () => {
+      const {
+        user: { id },
+        accessToken,
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
+
+      return request(app.getHttpServer())
+        .put('/users/' + id)
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          username: TestData.User.UsernameGreaterThanMaxLength,
+          email: TestData.User.EmailSecondary,
+        })
+        .expect(400)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 400,
+            message: 'Validation failed',
+            validationErrors: [
+              {
+                field: 'username',
+                constraints: {
+                  matches: 'username can only contain alphanumeric characters',
+                  maxLength:
+                    'username must be shorter than or equal to 20 characters',
+                },
+              },
+            ],
+          });
+        });
+    });
+
+    it('should fail to update an existing user with a username containing invalid characters', async () => {
+      const {
+        user: { id },
+        accessToken,
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
+
+      return request(app.getHttpServer())
+        .put('/users/' + id)
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          username: TestData.User.UsernameInvalidCharacters,
+          email: TestData.User.EmailSecondary,
+        })
+        .expect(400)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 400,
+            message: 'Validation failed',
+            validationErrors: [
+              {
+                field: 'username',
+                constraints: {
+                  matches: 'username can only contain alphanumeric characters',
+                },
+              },
+            ],
+          });
+        });
+    });
+
+    it('should fail to update an existing user with a non unique email', async () => {
+      const {
+        user: { id },
+        accessToken,
+      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
+
+      await app.createUser(2, UserRole.REGULAR_USER);
+
+      return request(app.getHttpServer())
+        .put('/users/' + id)
+        .set({ Authorization: 'Bearer ' + accessToken })
+        .send({
+          username: TestData.User.UsernamePrimary,
+          email: TestData.User.EmailSecondary,
+        })
+        .expect(409)
+        .expect(({ body }) => {
+          expect(body).toBeObject();
+          expect(body).toStrictEqual({
+            statusCode: 409,
+            message: 'Email must be unique.',
           });
         });
     });
@@ -672,8 +1065,8 @@ describe('UserController (e2e)', () => {
         .put('/users/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          username: TestData.SecondaryUsername,
-          email: TestData.InvalidEmail,
+          username: TestData.User.UsernameSecondary,
+          email: TestData.User.EmailInvalid,
         })
         .expect(400)
         .expect(({ body }) => {
@@ -701,8 +1094,8 @@ describe('UserController (e2e)', () => {
         .put('/users/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          username: TestData.SecondaryUsername,
-          email: TestData.SecondaryEmail,
+          username: TestData.User.UsernameSecondary,
+          email: TestData.User.EmailSecondary,
         })
         .expect(403)
         .expect(({ body }) => {
@@ -722,8 +1115,8 @@ describe('UserController (e2e)', () => {
       return request(app.getHttpServer())
         .put('/users/' + id)
         .send({
-          username: TestData.SecondaryUsername,
-          email: TestData.SecondaryEmail,
+          username: TestData.User.UsernameSecondary,
+          email: TestData.User.EmailSecondary,
         })
         .expect(401)
         .expect(({ body }) => {
@@ -745,8 +1138,8 @@ describe('UserController (e2e)', () => {
         .put('/users/' + id)
         .set({ Authorization: 'Bearer ' + accessToken })
         .send({
-          username: TestData.SecondaryUsername,
-          email: TestData.SecondaryEmail,
+          username: TestData.User.UsernameSecondary,
+          email: TestData.User.EmailSecondary,
         })
         .expect(401)
         .expect(({ body }) => {
@@ -781,14 +1174,14 @@ describe('UserController (e2e)', () => {
       );
 
       return request(app.getHttpServer())
-        .delete('/users/' + TestData.NonExistingUserId)
+        .delete('/users/' + TestData.User.NonExistingUserId)
         .set({ Authorization: 'Bearer ' + accessToken })
         .expect(404)
         .expect(({ body }) => {
           expect(body).toBeObject();
           expect(body).toStrictEqual({
             statusCode: 404,
-            message: `User with id \`${TestData.NonExistingUserId}\` was not found.`,
+            message: `User with id \`${TestData.User.NonExistingUserId}\` was not found.`,
           });
         });
     });

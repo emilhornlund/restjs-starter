@@ -15,9 +15,9 @@ export const ApiUserIdExample = '7bda9f39-8864-4ebb-a8ff-795d371baf56';
 export const ApiUserUsernameTitle = 'Username';
 export const ApiUserUsernameDescription =
   'Unique username that belongs to and is used to authenticate a user.';
-export const ApiUserUsernameMinLength = 2;
+export const ApiUserUsernameMinLength = 4;
 export const ApiUserUsernameMaxLength = 20;
-export const ApiUserUsernamePattern = /[a-zA-Z0-9_.]{2,20}/;
+export const ApiUserUsernamePattern = /^[a-zA-Z0-9]{4,20}$/;
 export const ApiUserUsernameExample = 'testuser';
 
 // -------------------------------------------------------------------------
@@ -25,12 +25,21 @@ export const ApiUserUsernameExample = 'testuser';
 // -------------------------------------------------------------------------
 
 export const ApiUserPasswordTitle = 'Password';
+export const ApiUserOldPasswordTitle = 'Old Password';
+export const ApiUserNewPasswordTitle = 'New Password';
 export const ApiUserPasswordDescription =
   'Password used to authenticate a user.';
+export const ApiUserOldPasswordDescription =
+  "The user's old password to verify.";
+export const ApiUserNewPasswordDescription =
+  "The user's new password to update.";
 export const ApiUserPasswordMinLength = 8;
 export const ApiUserPasswordMaxLength = 128;
-export const ApiUserPasswordPattern = /[\w]{8,128}/;
+export const ApiUserPasswordPattern =
+  /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,128}$/;
 export const ApiUserPasswordExample = 'hard!to-guess_password';
+export const ApiUserOldPasswordExample = 'old_harD2!Guess_p@ssw0rd';
+export const ApiUserNewPasswordExample = 'new_harD2!Guess_p@ssw0rd';
 
 // -------------------------------------------------------------------------
 // Email

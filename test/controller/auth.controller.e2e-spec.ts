@@ -1,12 +1,12 @@
 import * as request from 'supertest';
-import { TestApplication } from '../../test-application';
-import { TestData } from '../../test-data';
+import { TestApplication } from '../test-application';
+import { TestData } from '../test-data';
 import {
   UserAuthority,
   UserRole,
   UserRoleAuthority,
-} from '../../../src/user/service';
-import { JwtPayloadDto } from '../../../src/auth/service';
+} from '../../src/user/service';
+import { JwtPayloadDto } from '../../src/auth/service';
 
 describe('AuthController (e2e)', () => {
   const app: TestApplication = new TestApplication();
@@ -66,7 +66,7 @@ describe('AuthController (e2e)', () => {
 
       return request(app.getHttpServer())
         .post('/auth/token')
-        .send({ username, password: TestData.PrimaryPassword })
+        .send({ username, password: TestData.User.PasswordPrimary })
         .expect(201)
         .expect(({ body }) => {
           expectTokenResponse(body, id, role);
@@ -81,7 +81,7 @@ describe('AuthController (e2e)', () => {
 
       return request(app.getHttpServer())
         .post('/auth/token')
-        .send({ username, password: TestData.PrimaryPassword })
+        .send({ username, password: TestData.User.PasswordPrimary })
         .expect(201)
         .expect(({ body }) => {
           expectTokenResponse(body, id, role);
@@ -96,7 +96,7 @@ describe('AuthController (e2e)', () => {
 
       return request(app.getHttpServer())
         .post('/auth/token')
-        .send({ username: email, password: TestData.PrimaryPassword })
+        .send({ username: email, password: TestData.User.PasswordPrimary })
         .expect(201)
         .expect(({ body }) => {
           expectTokenResponse(body, id, role);
@@ -108,7 +108,7 @@ describe('AuthController (e2e)', () => {
 
       return request(app.getHttpServer())
         .post('/auth/token')
-        .send({ username: email, password: TestData.PrimaryPassword })
+        .send({ username: email, password: TestData.User.PasswordPrimary })
         .expect(201)
         .expect(({ body }) => {
           expectTokenResponse(body, id, role);
@@ -121,8 +121,8 @@ describe('AuthController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/auth/token')
         .send({
-          username: TestData.SecondaryUsername,
-          password: TestData.PrimaryPassword,
+          username: TestData.User.UsernameSecondary,
+          password: TestData.User.PasswordPrimary,
         })
         .expect(400)
         .expect({ statusCode: 400, message: 'Bad credentials' });
@@ -134,8 +134,8 @@ describe('AuthController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/auth/token')
         .send({
-          username: TestData.SecondaryEmail,
-          password: TestData.PrimaryPassword,
+          username: TestData.User.EmailSecondary,
+          password: TestData.User.PasswordPrimary,
         })
         .expect(400)
         .expect({ statusCode: 400, message: 'Bad credentials' });
@@ -147,8 +147,8 @@ describe('AuthController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/auth/token')
         .send({
-          username: TestData.PrimaryUsername,
-          password: TestData.SecondaryPassword,
+          username: TestData.User.UsernamePrimary,
+          password: TestData.User.PasswordSecondary,
         })
         .expect(400)
         .expect({ statusCode: 400, message: 'Bad credentials' });
@@ -160,8 +160,8 @@ describe('AuthController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/auth/token')
         .send({
-          username: TestData.PrimaryEmail,
-          password: TestData.SecondaryPassword,
+          username: TestData.User.EmailPrimary,
+          password: TestData.User.PasswordSecondary,
         })
         .expect(400)
         .expect({ statusCode: 400, message: 'Bad credentials' });
@@ -241,7 +241,7 @@ describe('AuthController (e2e)', () => {
       await app.createUser(1, UserRole.REGULAR_USER);
       const refreshToken = await app.signJwt(
         {
-          userId: TestData.NonExistingUserId,
+          userId: TestData.User.NonExistingUserId,
           role: UserRole.REGULAR_USER,
           authorities: [UserAuthority.REFRESH_TOKEN],
         },

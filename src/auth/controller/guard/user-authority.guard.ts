@@ -16,7 +16,7 @@ export class UserAuthorityGuard implements CanActivate {
     }
     const { currentUser } = context.switchToHttp().getRequest();
     return requiredUserAuthorities.every((authority) =>
-      currentUser.authorities?.includes(authority),
+      currentUser.authorities.includes(authority),
     );
   }
 }

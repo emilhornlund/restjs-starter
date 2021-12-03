@@ -144,11 +144,7 @@ export class UserAuthorityService {
     const userAuthorityEntity = await this.getUserAuthorityEntityByIdOrThrow(
       userAuthorityId,
     );
-    try {
-      await this.userAuthorityRepository.remove(userAuthorityEntity);
-    } catch (e) {
-      console.log(e);
-    }
+    await this.userAuthorityRepository.remove(userAuthorityEntity);
   }
 
   /**

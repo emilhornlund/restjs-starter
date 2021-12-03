@@ -1,14 +1,7 @@
-import { ValidationFailedException } from '../../../common/exception';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
-export class EmailUniqueConstraintException extends ValidationFailedException {
-  constructor(field?: string) {
-    super([
-      {
-        property: field ?? 'email',
-        constraints: {
-          isUsernameUnique: `email already exists`,
-        },
-      },
-    ]);
+export class EmailUniqueConstraintException extends HttpException {
+  constructor() {
+    super(`Email must be unique.`, HttpStatus.CONFLICT);
   }
 }

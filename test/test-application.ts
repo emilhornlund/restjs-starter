@@ -69,9 +69,9 @@ export class TestApplication {
     return await this.app
       .get<UserService>(UserService)
       .createUser(
-        TestData.Username(count),
-        TestData.PrimaryPassword,
-        TestData.Email(count),
+        TestData.User.UsernamePrefix + count,
+        TestData.User.PasswordPrimary,
+        TestData.User.UsernamePrefix + count + TestData.User.EmailSuffix,
         role,
       );
   }
@@ -80,9 +80,9 @@ export class TestApplication {
     const userService = this.app.get<UserService>(UserService);
     for (let i = from; i < to + 1; i++) {
       await userService.createUser(
-        TestData.Username(i),
-        TestData.PrimaryPassword,
-        TestData.Email(i),
+        TestData.User.UsernamePrefix + i,
+        TestData.User.PasswordPrimary,
+        TestData.User.UsernamePrefix + i + TestData.User.EmailSuffix,
         role,
       );
     }

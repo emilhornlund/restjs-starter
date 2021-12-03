@@ -4,10 +4,14 @@ import {
   ApiUserAuthorityDescriptionMinLength,
   ApiUserAuthorityNameMaxLength,
   ApiUserAuthorityNameMinLength,
+  ApiUserPasswordMaxLength,
+  ApiUserPasswordMinLength,
   ApiUserRoleDescriptionMaxLength,
   ApiUserRoleDescriptionMinLength,
   ApiUserRoleNameMaxLength,
   ApiUserRoleNameMinLength,
+  ApiUserUsernameMaxLength,
+  ApiUserUsernameMinLength,
 } from '../src/user/controller';
 
 export class TestData {
@@ -15,30 +19,69 @@ export class TestData {
   // Users
   // -------------------------------------------------------------------------
 
-  // User Ids
-  public static NonExistingUserId = 'fe513ec7-4096-4cdc-91ea-956efdbba20d';
+  static User = class {
+    // User Ids
+    public static NonExistingUserId = 'fe513ec7-4096-4cdc-91ea-956efdbba20d';
 
-  // Usernames
-  private static readonly UsernamePrefix = 'test_user';
-  public static Username = (i: number): string => TestData.UsernamePrefix + i;
-  public static readonly PrimaryUsername = TestData.Username(1);
-  public static readonly SecondaryUsername = TestData.Username(2);
-  public static readonly ShortUsername = 'ab';
-  public static readonly InvalidTooShortUsername = 'a';
-  public static readonly LongUsername = 'abcdefghijklmnopqrst';
-  public static readonly InvalidTooLongUsername = 'abcdefghijklmnopqrstu';
+    // Usernames
+    public static readonly UsernamePrefix = 'TestUser';
+    public static readonly UsernamePrimary = this.UsernamePrefix + 1;
+    public static readonly UsernameSecondary = this.UsernamePrefix + 2;
+    public static readonly UsernameEqualMinLength = TestUtils.randomString(
+      ApiUserUsernameMinLength,
+      TestUtils.Characters.ALPHANUMERIC,
+    );
+    public static readonly UsernameLessThanMinLength = TestUtils.randomString(
+      ApiUserUsernameMinLength - 1,
+      TestUtils.Characters.ALPHANUMERIC,
+    );
+    public static readonly UsernameEqualMaxLength = TestUtils.randomString(
+      ApiUserUsernameMaxLength,
+      TestUtils.Characters.ALPHANUMERIC,
+    );
+    public static readonly UsernameGreaterThanMaxLength =
+      TestUtils.randomString(
+        ApiUserUsernameMaxLength + 1,
+        TestUtils.Characters.ALPHANUMERIC,
+      );
+    public static readonly UsernameInvalidCharacters = 'test#_user!';
 
-  // Passwords
-  public static readonly PrimaryPassword = 'hard!to-guess_password';
-  public static readonly SecondaryPassword = 'another#hard!to-guess_password';
+    // Passwords
+    public static readonly PasswordPrimary = 'harD2!Guess_p@ssw0rd';
+    public static readonly PasswordSecondary = 'another#harD2!Guess_p@ssw0rd';
+    public static readonly PasswordEqualMinLength =
+      'aB1#' +
+      TestUtils.randomString(
+        ApiUserPasswordMinLength - 4,
+        TestUtils.Characters.ALPHANUMERIC,
+      );
+    public static readonly PasswordLessThanMinLength =
+      'aB1#' +
+      TestUtils.randomString(
+        ApiUserPasswordMinLength - 4 - 1,
+        TestUtils.Characters.ALPHANUMERIC,
+      );
+    public static readonly PasswordEqualMaxLength =
+      'aB1#' +
+      TestUtils.randomString(
+        ApiUserPasswordMaxLength - 4,
+        TestUtils.Characters.ALPHANUMERIC,
+      );
+    public static readonly PasswordGreaterThanMaxLength =
+      'aB1#' +
+      TestUtils.randomString(
+        ApiUserPasswordMaxLength - 4 + 1,
+        TestUtils.Characters.ALPHANUMERIC,
+      );
 
-  // Emails
-  private static readonly EmailSuffix = '@example.com';
-  public static Email = (i: number): string =>
-    TestData.Username(i) + TestData.EmailSuffix;
-  public static readonly PrimaryEmail = TestData.Email(1);
-  public static readonly SecondaryEmail = TestData.Email(2);
-  public static readonly InvalidEmail = 'invalid_email';
+    // Emails
+    public static readonly EmailSuffix = '@example.com';
+    public static readonly EmailPrimary =
+      this.UsernamePrefix + 1 + this.EmailSuffix;
+    public static readonly EmailSecondary =
+      this.UsernamePrefix + 2 + this.EmailSuffix;
+    public static readonly EmailInvalid = 'invalid_email';
+  };
 
   // -------------------------------------------------------------------------
   // User Roles
