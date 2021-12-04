@@ -35,6 +35,13 @@ $ npm run test
 $ npm run test:cov
 ```
 
+## Migrations
+
+Generate migration
+```bash
+$ npm run typeorm -- migration:create -n PostRefactoring
+```
+
 ## License
 
 REST-JS Starter is [MIT licensed](LICENSE).
