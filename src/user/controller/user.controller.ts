@@ -30,7 +30,7 @@ import {
   UserIdParam,
   UserIdParamKey,
 } from './decorator/user-id-param.decorator';
-import { PageableDto, PageableRequest } from '../../common/model';
+import { PageResultDto, PageableRequest } from '../../common/model';
 import {
   ApiPageableQueryParam,
   PageableQueryParam,
@@ -67,7 +67,10 @@ export class UserController {
     @PageableQueryParam() pageable: PageableRequest,
   ): Promise<PagedUserResponse> {
     return this.userService
-      .getUsers(pageable.page, pageable.size)
+      .getUsers({
+        number: pageable.page,
+        size: pageable.size,
+      })
       .then(UserController.toPagedUserResponse);
   }
 
@@ -86,11 +89,11 @@ export class UserController {
     @Body() createUserRequest: CreateUserRequest,
   ): Promise<UserResponse> {
     return this.userService
-      .createUser(
-        createUserRequest.username,
-        createUserRequest.password,
-        createUserRequest.email,
-      )
+      .createUser({
+        username: createUserRequest.username,
+        password: createUserRequest.password,
+        email: createUserRequest.email,
+      })
       .then(UserController.toUserResponse);
   }
 
@@ -130,7 +133,10 @@ export class UserController {
     @Body() updateUserRequest: UpdateUserRequest,
   ): Promise<UserResponse> {
     return this.userService
-      .updateUser(userId, updateUserRequest.username, updateUserRequest.email)
+      .updateUser(userId, {
+        username: updateUserRequest.username,
+        email: updateUserRequest.email,
+      })
       .then(UserController.toUserResponse);
   }
 
@@ -157,7 +163,7 @@ export class UserController {
    * @param pagedUserDto The PageableUserDto instance
    */
   static toPagedUserResponse = (
-    pagedUserDto: PageableDto<UserDto>,
+    pagedUserDto: PageResultDto<UserDto>,
   ): PagedUserResponse => ({
     users: pagedUserDto.content.map(UserController.toUserResponse),
     page: pagedUserDto.page,

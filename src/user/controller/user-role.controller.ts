@@ -26,7 +26,7 @@ import {
   ApiValidationFailedResponse,
 } from '../../common/decorator/api/api-response.decorator';
 import { HasUserAuthority } from '../../auth/controller/decorator/has-authority.decorator';
-import { PageableDto, PageableRequest } from '../../common/model';
+import { PageResultDto, PageableRequest } from '../../common/model';
 import { UserRoleResponse } from './model/response/user-role.response';
 import { PagedUserRoleResponse } from './model/response/paged-user-role.response';
 import {
@@ -67,7 +67,10 @@ export class UserRoleController {
     @PageableQueryParam() pageable: PageableRequest,
   ): Promise<PagedUserRoleResponse> {
     return this.userRoleService
-      .getUserRoles(pageable.page, pageable.size)
+      .getUserRoles({
+        number: pageable.page,
+        size: pageable.size,
+      })
       .then(UserRoleController.toUserRolePageResponse);
   }
 
@@ -86,7 +89,10 @@ export class UserRoleController {
     @Body() createUserRequest: CreateUserRoleRequest,
   ): Promise<UserRoleResponse> {
     return this.userRoleService
-      .createUserRole(createUserRequest.name, createUserRequest.description)
+      .createUserRole({
+        name: createUserRequest.name,
+        description: createUserRequest.description,
+      })
       .then(UserRoleController.toUserRoleResponse);
   }
 
@@ -130,11 +136,10 @@ export class UserRoleController {
     @Body() updateUserRequest: UpdateUserRoleRequest,
   ): Promise<UserRoleResponse> {
     return this.userRoleService
-      .updateUserRole(
-        userRoleId,
-        updateUserRequest.name,
-        updateUserRequest.description,
-      )
+      .updateUserRole(userRoleId, {
+        name: updateUserRequest.name,
+        description: updateUserRequest.description,
+      })
       .then(UserRoleController.toUserRoleResponse);
   }
 
@@ -162,7 +167,7 @@ export class UserRoleController {
    * @private
    */
   private static toUserRolePageResponse(
-    pageableUserRoleDto: PageableDto<UserRoleDto>,
+    pageableUserRoleDto: PageResultDto<UserRoleDto>,
   ): PagedUserRoleResponse {
     return {
       user_roles: pageableUserRoleDto.content.map(

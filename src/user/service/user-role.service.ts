@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { Not } from 'typeorm';
 import { UserRoleEntity, UserRoleRepository } from '../repository';
-import { PageableDto } from '../../common/model';
+import { PageableDto, PageResultDto } from '../../common/model';
 import { UserRoleDto } from './model/user-role.dto';
 import { UserRoleNotFoundException } from './exception/user-role-not-found.exception';
 import { UserRoleNameUniqueConstraintException } from './exception/user-role-name-unique-constraint.exception';
+import { CreateUserRoleDto } from './model/create-user-role.dto';
+import { UpdateUserRoleDto } from './model/update-user-role.dto';
 
 @Injectable()
 export class UserRoleService {
@@ -23,24 +25,22 @@ export class UserRoleService {
   /**
    * Get a single page containing a subset of all user roles in the system.
    *
-   * @param pageNumber The number of the page
-   * @param pageSize The size of the page
+   * @param pageableDto The page information to fetch
    */
   public async getUserRoles(
-    pageNumber: number,
-    pageSize: number,
-  ): Promise<PageableDto<UserRoleDto>> {
+    pageableDto: PageableDto,
+  ): Promise<PageResultDto<UserRoleDto>> {
     const [roles, totalElements] = await this.userRoleRepository.findAndCount({
-      skip: pageNumber * pageSize,
-      take: pageSize,
+      skip: pageableDto.number * pageableDto.size,
+      take: pageableDto.size,
     });
 
     return Promise.resolve({
       content: roles.map(UserRoleService.toUserRoleDto),
       page: {
-        number: pageNumber,
-        size: pageSize,
-        totalPages: Math.ceil(totalElements / pageSize),
+        number: pageableDto.number,
+        size: pageableDto.size,
+        totalPages: Math.ceil(totalElements / pageableDto.size),
         totalElements,
       },
     });
@@ -49,18 +49,17 @@ export class UserRoleService {
   /**
    * Create a new user role.
    *
-   * @param name The user role's name
-   * @param description The user role's description
+   * @param createUserRoleDto Contains new details about a new user role
    */
   public async createUserRole(
-    name: string,
-    description?: string,
+    createUserRoleDto: CreateUserRoleDto,
   ): Promise<UserRoleDto> {
-    await this.verifyUserRoleNameUnique(name);
+    await this.verifyUserRoleNameUnique(createUserRoleDto.name);
 
-    const userRoleEntity = this.userRoleRepository.create();
-    userRoleEntity.name = name;
-    userRoleEntity.description = description;
+    const userRoleEntity = this.userRoleRepository.create({
+      name: createUserRoleDto.name,
+      description: createUserRoleDto.description,
+    });
 
     const savedEntity = await this.userRoleRepository.save(userRoleEntity);
     return UserRoleService.toUserRoleDto(savedEntity);
@@ -70,19 +69,17 @@ export class UserRoleService {
    * Update an existing user role.
    *
    * @param userRoleId The user role's id
-   * @param name The user role's name
-   * @param description The user role's description
+   * @param updateUserRoleDto Contains new details about an existing user role
    */
   public async updateUserRole(
     userRoleId: string,
-    name: string,
-    description?: string,
+    updateUserRoleDto: UpdateUserRoleDto,
   ): Promise<UserRoleDto> {
-    await this.verifyUserRoleNameUnique(name, userRoleId);
+    await this.verifyUserRoleNameUnique(updateUserRoleDto.name, userRoleId);
 
     const userRoleEntity = await this.getUserRoleEntityByIdOrThrow(userRoleId);
-    userRoleEntity.name = name;
-    userRoleEntity.description = description;
+    userRoleEntity.name = updateUserRoleDto.name;
+    userRoleEntity.description = updateUserRoleDto.description;
 
     const savedEntity = await this.userRoleRepository.save(userRoleEntity);
     return UserRoleService.toUserRoleDto(savedEntity);

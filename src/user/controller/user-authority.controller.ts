@@ -29,7 +29,7 @@ import {
   ApiValidationFailedResponse,
 } from '../../common/decorator/api/api-response.decorator';
 import { HasUserAuthority } from '../../auth/controller/decorator/has-authority.decorator';
-import { PageableDto, PageableRequest } from '../../common/model';
+import { PageResultDto, PageableRequest } from '../../common/model';
 import { UserAuthorityResponse } from './model/response/user-authority.response';
 import { PagedUserAuthorityResponse } from './model/response/paged-user-authority.response';
 import {
@@ -69,7 +69,10 @@ export class UserAuthorityController {
     @PageableQueryParam() pageable: PageableRequest,
   ): Promise<PagedUserAuthorityResponse> {
     return this.userAuthorityService
-      .getUserAuthorities(pageable.page, pageable.size)
+      .getUserAuthorities({
+        number: pageable.page,
+        size: pageable.size,
+      })
       .then(UserAuthorityController.toUserAuthorityPageResponse);
   }
 
@@ -87,10 +90,10 @@ export class UserAuthorityController {
     @Body() createUserRequest: CreateUserAuthorityRequest,
   ): Promise<UserAuthorityResponse> {
     return this.userAuthorityService
-      .createUserAuthority(
-        createUserRequest.name,
-        createUserRequest.description,
-      )
+      .createUserAuthority({
+        name: createUserRequest.name,
+        description: createUserRequest.description,
+      })
       .then(UserAuthorityController.toUserAuthorityResponse);
   }
 
@@ -132,11 +135,10 @@ export class UserAuthorityController {
     @Body() updateUserRequest: UpdateUserAuthorityRequest,
   ): Promise<UserAuthorityResponse> {
     return this.userAuthorityService
-      .updateUserAuthority(
-        userAuthorityId,
-        updateUserRequest.name,
-        updateUserRequest.description,
-      )
+      .updateUserAuthority(userAuthorityId, {
+        name: updateUserRequest.name,
+        description: updateUserRequest.description,
+      })
       .then(UserAuthorityController.toUserAuthorityResponse);
   }
 
@@ -163,7 +165,7 @@ export class UserAuthorityController {
    * @private
    */
   private static toUserAuthorityPageResponse(
-    pageableUserAuthorityDto: PageableDto<UserAuthorityDto>,
+    pageableUserAuthorityDto: PageResultDto<UserAuthorityDto>,
   ): PagedUserAuthorityResponse {
     return {
       user_authorities: pageableUserAuthorityDto.content.map(

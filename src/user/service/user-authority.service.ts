@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { Not } from 'typeorm';
 import { UserAuthorityEntity, UserAuthorityRepository } from '../repository';
-import { PageableDto } from '../../common/model';
+import { PageableDto, PageResultDto } from '../../common/model';
 import { UserAuthorityDto } from './model/user-authority.dto';
 import { UserAuthorityNotFoundException } from './exception/user-authority-not-found.exception';
 import { UserAuthorityNameUniqueConstraintException } from './exception/user-authority-name-unique-constraint.exception';
+import { CreateUserAuthorityDto } from './model/create-user-authority.dto';
+import { UpdateUserAuthorityDto } from './model/update-user-authority.dto';
 
 @Injectable()
 export class UserAuthorityService {
@@ -27,25 +29,23 @@ export class UserAuthorityService {
   /**
    * Get a single page containing a subset of all user authorities in the system.
    *
-   * @param pageNumber The number of the page
-   * @param pageSize The size of the page
+   * @param pageableDto The page information to fetch
    */
   public async getUserAuthorities(
-    pageNumber: number,
-    pageSize: number,
-  ): Promise<PageableDto<UserAuthorityDto>> {
+    pageableDto: PageableDto,
+  ): Promise<PageResultDto<UserAuthorityDto>> {
     const [authorities, totalElements] =
       await this.userAuthorityRepository.findAndCount({
-        skip: pageNumber * pageSize,
-        take: pageSize,
+        skip: pageableDto.number * pageableDto.size,
+        take: pageableDto.size,
       });
 
     return Promise.resolve({
       content: authorities.map(UserAuthorityService.toUserAuthorityDto),
       page: {
-        number: pageNumber,
-        size: pageSize,
-        totalPages: Math.ceil(totalElements / pageSize),
+        number: pageableDto.number,
+        size: pageableDto.size,
+        totalPages: Math.ceil(totalElements / pageableDto.size),
         totalElements,
       },
     });
@@ -54,18 +54,17 @@ export class UserAuthorityService {
   /**
    * Create a new user authority.
    *
-   * @param name The user authority's name
-   * @param description The user authority's description
+   * @param createUserAuthorityDto Contains new details about a new user authority
    */
   public async createUserAuthority(
-    name: string,
-    description?: string,
+    createUserAuthorityDto: CreateUserAuthorityDto,
   ): Promise<UserAuthorityDto> {
-    await this.verifyUserAuthorityNameUnique(name);
+    await this.verifyUserAuthorityNameUnique(createUserAuthorityDto.name);
 
-    const userAuthorityEntity = this.userAuthorityRepository.create();
-    userAuthorityEntity.name = name;
-    userAuthorityEntity.description = description;
+    const userAuthorityEntity = this.userAuthorityRepository.create({
+      name: createUserAuthorityDto.name,
+      description: createUserAuthorityDto.description,
+    });
 
     const savedEntity = await this.userAuthorityRepository.save(
       userAuthorityEntity,
@@ -77,21 +76,22 @@ export class UserAuthorityService {
    * Update an existing user authority.
    *
    * @param userAuthorityId The user authority's id
-   * @param name The user authority's name
-   * @param description The user authority's description
+   * @param updateUserAuthorityDto Contains new details about an existing user authority
    */
   public async updateUserAuthority(
     userAuthorityId: string,
-    name: string,
-    description?: string,
+    updateUserAuthorityDto: UpdateUserAuthorityDto,
   ): Promise<UserAuthorityDto> {
-    await this.verifyUserAuthorityNameUnique(name, userAuthorityId);
+    await this.verifyUserAuthorityNameUnique(
+      updateUserAuthorityDto.name,
+      userAuthorityId,
+    );
 
     const userAuthorityEntity = await this.getUserAuthorityEntityByIdOrThrow(
       userAuthorityId,
     );
-    userAuthorityEntity.name = name;
-    userAuthorityEntity.description = description;
+    userAuthorityEntity.name = updateUserAuthorityDto.name;
+    userAuthorityEntity.description = updateUserAuthorityDto.description;
 
     const savedEntity = await this.userAuthorityRepository.save(
       userAuthorityEntity,

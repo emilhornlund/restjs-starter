@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Not } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { PageableDto } from '../../common/model';
+import { PageableDto, PageResultDto } from '../../common/model';
 import { UserDto } from './model/user-dto.interface';
 import { UserRole } from './model/user-role.enum';
 import { UserEntity, UserRepository } from '../repository';
@@ -9,6 +9,9 @@ import { UserNotFoundException } from './exception/user-not-found.exception';
 import { UsernameUniqueConstraintException } from './exception/username-unique-constraint.exception';
 import { EmailUniqueConstraintException } from './exception/email-unique-constraint.exception';
 import { UserNotFoundByUsernameOrPasswordException } from './exception/user-not-found-by-username-or-password.exception';
+import { CreateUserDto } from './model/create-user.dto';
+import { UpdateUserDto } from './model/update-user.dto';
+import { UpdateUserPasswordDto } from './model/update-user-password.dto';
 
 @Injectable()
 export class UserService {
@@ -41,25 +44,23 @@ export class UserService {
   /**
    * Get a single page containing a subset of all users in the system.
    *
-   * @param pageNumber The number of the page
-   * @param pageSize The size of the page
+   * @param pageableDto The page information to fetch
    */
   public async getUsers(
-    pageNumber: number,
-    pageSize: number,
-  ): Promise<PageableDto<UserDto>> {
-    const pageOffset = pageNumber * pageSize;
+    pageableDto: PageableDto,
+  ): Promise<PageResultDto<UserDto>> {
+    const pageOffset = pageableDto.number * pageableDto.size;
     const [users, totalElements] = await this.userRepository.findAndCount({
       skip: pageOffset,
-      take: pageSize,
+      take: pageableDto.size,
     });
 
     return {
       content: users.map(UserService.toUserDto),
       page: {
-        number: pageNumber,
-        size: pageSize,
-        totalPages: Math.ceil(totalElements / pageSize),
+        number: pageableDto.number,
+        size: pageableDto.size,
+        totalPages: Math.ceil(totalElements / pageableDto.size),
         totalElements,
       },
     };
@@ -68,25 +69,18 @@ export class UserService {
   /**
    * Create a new user.
    *
-   * @param username The user's username
-   * @param password The user's password
-   * @param email The user's email
-   * @param role The user's role
+   * @param createUserDto Contains new details about a new user
    */
-  public async createUser(
-    username: string,
-    password: string,
-    email: string,
-    role: UserRole = UserRole.REGULAR_USER,
-  ): Promise<UserDto> {
-    await this.verifyUsernameUnique(username);
-    await this.verifyEmailUnique(email);
+  public async createUser(createUserDto: CreateUserDto): Promise<UserDto> {
+    await this.verifyUsernameUnique(createUserDto.username);
+    await this.verifyEmailUnique(createUserDto.email);
 
-    const entity = this.userRepository.create();
-    entity.username = username;
-    entity.password = await bcrypt.hash(password, 10);
-    entity.email = email;
-    entity.role = role;
+    const entity = this.userRepository.create({
+      username: createUserDto.username,
+      password: await bcrypt.hash(createUserDto.password, 10),
+      email: createUserDto.email,
+      role: createUserDto.role ?? UserRole.REGULAR_USER,
+    });
 
     const savedEntity = await this.userRepository.save(entity);
     return UserService.toUserDto(savedEntity);
@@ -96,20 +90,18 @@ export class UserService {
    * Update an existing user.
    *
    * @param userId The user's id
-   * @param username The user's username
-   * @param email The user's email
+   * @param updateUserDto Contains new details about an existing user
    */
   public async updateUser(
     userId: string,
-    username: string,
-    email: string,
+    updateUserDto: UpdateUserDto,
   ): Promise<UserDto> {
-    await this.verifyUsernameUnique(username, userId);
-    await this.verifyEmailUnique(email, userId);
+    await this.verifyUsernameUnique(updateUserDto.username, userId);
+    await this.verifyEmailUnique(updateUserDto.email, userId);
 
     const userEntity = await this.getUserEntityByIdOrThrow(userId);
-    userEntity.username = username;
-    userEntity.email = email;
+    userEntity.username = updateUserDto.username;
+    userEntity.email = updateUserDto.email;
 
     const savedEntity = await this.userRepository.save(userEntity);
     return UserService.toUserDto(savedEntity);
@@ -121,22 +113,26 @@ export class UserService {
    * Verifies the user's old password before updating the password.
    *
    * @param userId The user's id
-   * @param oldPassword The user's old password
-   * @param newPassword The user's new password
+   * @param updateUserPasswordDto Contains new password details about an existing user
    */
   public async updateUserPassword(
     userId: string,
-    oldPassword: string,
-    newPassword: string,
+    updateUserPasswordDto: UpdateUserPasswordDto,
   ): Promise<void> {
     const userEntity = await this.getUserEntityByIdOrThrow(userId);
 
-    const isMatch = await bcrypt.compare(oldPassword, userEntity.password);
+    const isMatch = await bcrypt.compare(
+      updateUserPasswordDto.oldPassword,
+      userEntity.password,
+    );
     if (!isMatch) {
       throw new BadRequestException('Incorrect old password');
     }
 
-    userEntity.password = await bcrypt.hash(newPassword, 10);
+    userEntity.password = await bcrypt.hash(
+      updateUserPasswordDto.newPassword,
+      10,
+    );
 
     await this.userRepository.save(userEntity);
   }

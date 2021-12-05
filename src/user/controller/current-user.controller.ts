@@ -63,11 +63,10 @@ export class CurrentUserController {
     @CurrentUserParam('userId') userId: string,
     @Body() patchUserPasswordRequest: PatchUserPasswordRequest,
   ) {
-    return this.userService.updateUserPassword(
-      userId,
-      patchUserPasswordRequest.oldPassword,
-      patchUserPasswordRequest.newPassword,
-    );
+    return this.userService.updateUserPassword(userId, {
+      oldPassword: patchUserPasswordRequest.oldPassword,
+      newPassword: patchUserPasswordRequest.newPassword,
+    });
   }
 
   /**
