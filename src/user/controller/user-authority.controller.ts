@@ -83,7 +83,7 @@ export class UserAuthorityController {
   @ApiValidationFailedResponse()
   @ApiUnauthorizedResponse()
   @HasUserAuthority(UserAuthority.AUTHORITY_ADMINISTRATION_WRITE)
-  public createUser(
+  public createUserAuthority(
     @Body() createUserRequest: CreateUserAuthorityRequest,
   ): Promise<UserAuthorityResponse> {
     return this.userAuthorityService
@@ -106,7 +106,7 @@ export class UserAuthorityController {
   @ApiUnauthorizedResponse()
   @ApiUserAuthorityNotFoundResponse()
   @HasUserAuthority(UserAuthority.AUTHORITY_ADMINISTRATION_READ)
-  public findUser(
+  public findUserAuthority(
     @UserAuthorityIdParam() userAuthorityId: string,
   ): Promise<UserAuthorityResponse> {
     return this.userAuthorityService
@@ -127,7 +127,7 @@ export class UserAuthorityController {
   @ApiUnauthorizedResponse()
   @ApiUserAuthorityNotFoundResponse()
   @HasUserAuthority(UserAuthority.AUTHORITY_ADMINISTRATION_WRITE)
-  public updateUser(
+  public updateUserAuthority(
     @UserAuthorityIdParam() userAuthorityId: string,
     @Body() updateUserRequest: UpdateUserAuthorityRequest,
   ): Promise<UserAuthorityResponse> {
@@ -152,7 +152,7 @@ export class UserAuthorityController {
   @ApiUnauthorizedResponse()
   @ApiUserAuthorityNotFoundResponse()
   @HasUserAuthority(UserAuthority.AUTHORITY_ADMINISTRATION_WRITE)
-  public deleteUser(@UserAuthorityIdParam() userAuthorityId: string) {
+  public deleteUserAuthority(@UserAuthorityIdParam() userAuthorityId: string) {
     return this.userAuthorityService.deleteUserAuthority(userAuthorityId);
   }
 
