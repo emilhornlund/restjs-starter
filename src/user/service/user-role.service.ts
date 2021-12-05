@@ -33,6 +33,7 @@ export class UserRoleService {
     const [roles, totalElements] = await this.userRoleRepository.findAndCount({
       skip: pageableDto.number * pageableDto.size,
       take: pageableDto.size,
+      order: { name: 'ASC' },
     });
 
     return Promise.resolve({

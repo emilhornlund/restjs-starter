@@ -1,6 +1,6 @@
 import * as request from 'supertest';
 import { TestApplication } from '../test-application';
-import { UserRole } from '../../src/user/service';
+import { UserAuthorityDto, UserRole } from '../../src/user/service';
 import { TestData } from '../test-data';
 
 describe('UserAuthorityController (e2e)', () => {
@@ -14,20 +14,14 @@ describe('UserAuthorityController (e2e)', () => {
     await app.close();
   });
 
-  const arrayContainingUserAuthorities = (
-    from: number,
-    count: number,
-  ): any[] => {
-    return Array(count)
-      .fill(0)
-      .map((_, i) => ({
-        id: expect.any(String),
-        name: `${TestData.UserAuthority.NamePrefix}_${from + i}:read`,
-        description: TestData.UserAuthority.PrimaryDescription,
-        createdAt: expect.any(String),
-        updatedAt: expect.any(String),
-      }));
-  };
+  const containingUserAuthorities = (
+    ...userAuthorities: UserAuthorityDto[]
+  ): any[] =>
+    userAuthorities.map((userAuthority) => ({
+      ...userAuthority,
+      createdAt: userAuthority.createdAt.toISOString(),
+      updatedAt: userAuthority.createdAt.toISOString(),
+    }));
 
   describe('/user_authorities (GET)', () => {
     it('should get a page of user authorities with default page and size', async () => {
@@ -68,7 +62,7 @@ describe('UserAuthorityController (e2e)', () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
-      await app.createUserAuthorities(1, 10);
+      const userAuthorities = await app.batchCreateUserAuthorities(10);
 
       return request(app.getHttpServer())
         .get('/user_authorities?page=0&size=5')
@@ -76,17 +70,21 @@ describe('UserAuthorityController (e2e)', () => {
         .expect(200)
         .expect(({ body }) => {
           expect(body).toBeObject();
-          expect(body).toStrictEqual(
-            expect.objectContaining({
-              user_authorities: arrayContainingUserAuthorities(1, 5),
-              page: {
-                number: 0,
-                size: 5,
-                totalPages: 2,
-                totalElements: 10,
-              },
-            }),
-          );
+          expect(body).toStrictEqual({
+            user_authorities: containingUserAuthorities(
+              userAuthorities[0],
+              userAuthorities[1],
+              userAuthorities[2],
+              userAuthorities[3],
+              userAuthorities[4],
+            ),
+            page: {
+              number: 0,
+              size: 5,
+              totalPages: 2,
+              totalElements: 10,
+            },
+          });
         });
     });
 
@@ -94,7 +92,7 @@ describe('UserAuthorityController (e2e)', () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
-      await app.createUserAuthorities(1, 10);
+      const userAuthorities = await app.batchCreateUserAuthorities(10);
 
       return request(app.getHttpServer())
         .get('/user_authorities?page=1&size=5')
@@ -104,7 +102,13 @@ describe('UserAuthorityController (e2e)', () => {
           expect(body).toBeObject();
           expect(body).toStrictEqual(
             expect.objectContaining({
-              user_authorities: arrayContainingUserAuthorities(6, 5),
+              user_authorities: containingUserAuthorities(
+                userAuthorities[5],
+                userAuthorities[6],
+                userAuthorities[7],
+                userAuthorities[8],
+                userAuthorities[9],
+              ),
               page: {
                 number: 1,
                 size: 5,

@@ -53,6 +53,7 @@ export class UserService {
     const [users, totalElements] = await this.userRepository.findAndCount({
       skip: pageOffset,
       take: pageableDto.size,
+      order: { username: 'ASC' },
     });
 
     return {

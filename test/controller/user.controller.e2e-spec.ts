@@ -1,7 +1,7 @@
 import * as request from 'supertest';
 import { TestApplication } from '../test-application';
 import { TestData } from '../test-data';
-import { UserRole } from '../../src/user/service';
+import { UserDto, UserRole } from '../../src/user/service';
 
 describe('UserController (e2e)', () => {
   const app: TestApplication = new TestApplication();
@@ -14,19 +14,12 @@ describe('UserController (e2e)', () => {
     await app.close();
   });
 
-  const arrayContainingUsers = (from: number, count: number): any[] => {
-    return Array(count)
-      .fill(0)
-      .map((_, i) => ({
-        id: expect.any(String),
-        username: TestData.User.UsernamePrefix + (from + i),
-        email:
-          TestData.User.UsernamePrefix + (from + i) + TestData.User.EmailSuffix,
-        role: UserRole.REGULAR_USER,
-        createdAt: expect.any(String),
-        updatedAt: expect.any(String),
-      }));
-  };
+  const containingUsers = (...users: UserDto[]): any[] =>
+    users.map((user) => ({
+      ...user,
+      createdAt: user.createdAt.toISOString(),
+      updatedAt: user.createdAt.toISOString(),
+    }));
 
   describe('/users (GET)', () => {
     it('should get an page of users with default page and size', async () => {
@@ -63,11 +56,10 @@ describe('UserController (e2e)', () => {
     });
 
     it('should get the first page of 5 users', async () => {
-      const {
-        user: { id, username, email, role, createdAt, updatedAt },
-        accessToken,
-      } = await app.createAuthenticatedUser(UserRole.SUPER_USER);
-      await app.createUsers(2, 10, UserRole.REGULAR_USER);
+      const { accessToken } = await app.createAuthenticatedUser(
+        UserRole.SUPER_USER,
+      );
+      const users = await app.batchCreateUsers(9);
 
       return request(app.getHttpServer())
         .get('/users?page=0&size=5')
@@ -75,27 +67,21 @@ describe('UserController (e2e)', () => {
         .expect(200)
         .expect(({ body }) => {
           expect(body).toBeObject();
-          expect(body).toStrictEqual(
-            expect.objectContaining({
-              users: [
-                {
-                  id,
-                  username,
-                  email,
-                  role,
-                  createdAt: createdAt.toISOString(),
-                  updatedAt: updatedAt.toISOString(),
-                },
-                ...arrayContainingUsers(2, 4),
-              ],
-              page: {
-                number: 0,
-                size: 5,
-                totalPages: 2,
-                totalElements: 10,
-              },
-            }),
-          );
+          expect(body).toStrictEqual({
+            users: containingUsers(
+              users[0],
+              users[1],
+              users[2],
+              users[3],
+              users[4],
+            ),
+            page: {
+              number: 0,
+              size: 5,
+              totalPages: 2,
+              totalElements: 10,
+            },
+          });
         });
     });
 
@@ -103,7 +89,7 @@ describe('UserController (e2e)', () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
-      await app.createUsers(2, 10, UserRole.REGULAR_USER);
+      await app.batchCreateUsers(9);
 
       return request(app.getHttpServer())
         .get('/users?page=NaN&size=5')
@@ -128,7 +114,7 @@ describe('UserController (e2e)', () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
-      await app.createUsers(2, 10, UserRole.REGULAR_USER);
+      await app.batchCreateUsers(9);
 
       return request(app.getHttpServer())
         .get('/users?page=0&size=NaN')
@@ -153,7 +139,7 @@ describe('UserController (e2e)', () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
-      await app.createUsers(2, 10, UserRole.REGULAR_USER);
+      const users = await app.batchCreateUsers(10);
 
       return request(app.getHttpServer())
         .get('/users?page=1&size=5')
@@ -161,17 +147,21 @@ describe('UserController (e2e)', () => {
         .expect(200)
         .expect(({ body }) => {
           expect(body).toBeObject();
-          expect(body).toStrictEqual(
-            expect.objectContaining({
-              users: arrayContainingUsers(6, 5),
-              page: {
-                number: 1,
-                size: 5,
-                totalPages: 2,
-                totalElements: 10,
-              },
-            }),
-          );
+          expect(body).toStrictEqual({
+            users: containingUsers(
+              users[5],
+              users[6],
+              users[7],
+              users[8],
+              users[9],
+            ),
+            page: {
+              number: 1,
+              size: 5,
+              totalPages: 3,
+              totalElements: 11,
+            },
+          });
         });
     });
 

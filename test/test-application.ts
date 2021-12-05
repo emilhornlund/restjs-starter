@@ -90,16 +90,20 @@ export class TestApplication {
     });
   }
 
-  async createUsers(from: number, to: number, role?: UserRole) {
+  async batchCreateUsers(count: number): Promise<UserDto[]> {
     const userService = this.app.get<UserService>(UserService);
-    for (let i = from; i < to + 1; i++) {
-      await userService.createUser({
-        username: TestData.User.UsernamePrefix + i,
-        password: TestData.User.PasswordPrimary,
-        email: TestData.User.UsernamePrefix + i + TestData.User.EmailSuffix,
-        role,
-      });
-    }
+    return Promise.all(
+      Array(count)
+        .fill(0)
+        .map((_, i) =>
+          userService.createUser({
+            username: TestData.User.BatchUsernamePrefix + i,
+            password: TestData.User.PasswordPrimary,
+            email:
+              TestData.User.BatchUsernamePrefix + i + TestData.User.EmailSuffix,
+          }),
+        ),
+    );
   }
 
   // -------------------------------------------------------------------------
@@ -115,16 +119,18 @@ export class TestApplication {
       .createUserRole({ name, description });
   }
 
-  async createUserRoles(from: number, count: number) {
-    const userRoleService = await this.app.get<UserRoleService>(
-      UserRoleService,
+  async batchCreateUserRoles(count: number): Promise<UserRoleDto[]> {
+    const userRoleService = this.app.get<UserRoleService>(UserRoleService);
+    return Promise.all(
+      Array(count)
+        .fill(0)
+        .map((_, i) =>
+          userRoleService.createUserRole({
+            name: `${TestData.UserRole.BatchNamePrefix}_${i}`,
+            description: TestData.UserRole.PrimaryDescription,
+          }),
+        ),
     );
-    for (let i = from; i < from + count; i++) {
-      await userRoleService.createUserRole({
-        name: `${TestData.UserRole.NamePrefix}_${i}`,
-        description: TestData.UserRole.PrimaryDescription,
-      });
-    }
   }
 
   // -------------------------------------------------------------------------
@@ -140,15 +146,18 @@ export class TestApplication {
       .createUserAuthority({ name, description });
   }
 
-  async createUserAuthorities(from: number, count: number) {
-    const userAuthorityService = await this.app.get<UserAuthorityService>(
-      UserAuthorityService,
+  async batchCreateUserAuthorities(count: number): Promise<UserRoleDto[]> {
+    const userAuthorityService =
+      this.app.get<UserAuthorityService>(UserAuthorityService);
+    return Promise.all(
+      Array(count)
+        .fill(0)
+        .map((_, i) =>
+          userAuthorityService.createUserAuthority({
+            name: `${TestData.UserAuthority.BatchNamePrefix}_${i}:read`,
+            description: TestData.UserAuthority.PrimaryDescription,
+          }),
+        ),
     );
-    for (let i = from; i < from + count; i++) {
-      await userAuthorityService.createUserAuthority({
-        name: `${TestData.UserAuthority.NamePrefix}_${i}:read`,
-        description: TestData.UserAuthority.PrimaryDescription,
-      });
-    }
   }
 }

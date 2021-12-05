@@ -38,6 +38,7 @@ export class UserAuthorityService {
       await this.userAuthorityRepository.findAndCount({
         skip: pageableDto.number * pageableDto.size,
         take: pageableDto.size,
+        order: { name: 'ASC' },
       });
 
     return Promise.resolve({

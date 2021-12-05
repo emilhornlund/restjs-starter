@@ -25,6 +25,7 @@ export class TestData {
 
     // Usernames
     public static readonly UsernamePrefix = 'TestUser';
+    public static readonly BatchUsernamePrefix = 'BatchTestUser';
     public static readonly UsernamePrimary = this.UsernamePrefix + 1;
     public static readonly UsernameSecondary = this.UsernamePrefix + 2;
     public static readonly UsernameEqualMinLength = TestUtils.randomString(
@@ -94,7 +95,7 @@ export class TestData {
     // User Role Names
     public static readonly PrimaryName = 'PRIMARY_ROLE';
     public static readonly SecondaryName = 'SECONDARY_ROLE';
-    public static readonly NamePrefix = 'ROLE_PREFIX';
+    public static readonly BatchNamePrefix = 'BATCH_ROLE_PREFIX';
     public static readonly ValidNameExactMinLength = TestUtils.randomString(
       ApiUserRoleNameMinLength,
       TestUtils.Characters.UPPERCASE_LETTERS,
@@ -169,7 +170,7 @@ export class TestData {
     // User Authority Names
     public static readonly PrimaryName = 'PRIMARY_AUTHORITY:write';
     public static readonly SecondaryName = 'SECONDARY_AUTHORITY:read';
-    public static readonly NamePrefix = 'AUTHORITY_PREFIX';
+    public static readonly BatchNamePrefix = 'BATCH_AUTHORITY_PREFIX';
     public static readonly ValidNameExactMinLength =
       TestUtils.randomString(
         ApiUserAuthorityNameMinLength - 5,

@@ -1,6 +1,6 @@
 import * as request from 'supertest';
 import { TestApplication } from '../test-application';
-import { UserRole } from '../../src/user/service';
+import { UserRole, UserRoleDto } from '../../src/user/service';
 import { TestData } from '../test-data';
 
 describe('UserRoleController (e2e)', () => {
@@ -14,17 +14,12 @@ describe('UserRoleController (e2e)', () => {
     await app.close();
   });
 
-  const arrayContainingUserRoles = (from: number, count: number): any[] => {
-    return Array(count)
-      .fill(0)
-      .map((_, i) => ({
-        id: expect.any(String),
-        name: `${TestData.UserRole.NamePrefix}_${from + i}`,
-        description: TestData.UserRole.PrimaryDescription,
-        createdAt: expect.any(String),
-        updatedAt: expect.any(String),
-      }));
-  };
+  const containingUserRoles = (...userRoles: UserRoleDto[]): any[] =>
+    userRoles.map((userRole) => ({
+      ...userRole,
+      createdAt: userRole.createdAt.toISOString(),
+      updatedAt: userRole.createdAt.toISOString(),
+    }));
 
   describe('/user_roles (GET)', () => {
     it('should get a page of user roles with default page and size', async () => {
@@ -65,7 +60,7 @@ describe('UserRoleController (e2e)', () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
-      await app.createUserRoles(1, 10);
+      const userRoles = await app.batchCreateUserRoles(10);
 
       return request(app.getHttpServer())
         .get('/user_roles?page=0&size=5')
@@ -73,17 +68,21 @@ describe('UserRoleController (e2e)', () => {
         .expect(200)
         .expect(({ body }) => {
           expect(body).toBeObject();
-          expect(body).toStrictEqual(
-            expect.objectContaining({
-              user_roles: arrayContainingUserRoles(1, 5),
-              page: {
-                number: 0,
-                size: 5,
-                totalPages: 2,
-                totalElements: 10,
-              },
-            }),
-          );
+          expect(body).toStrictEqual({
+            user_roles: containingUserRoles(
+              userRoles[0],
+              userRoles[1],
+              userRoles[2],
+              userRoles[3],
+              userRoles[4],
+            ),
+            page: {
+              number: 0,
+              size: 5,
+              totalPages: 2,
+              totalElements: 10,
+            },
+          });
         });
     });
 
@@ -91,7 +90,7 @@ describe('UserRoleController (e2e)', () => {
       const { accessToken } = await app.createAuthenticatedUser(
         UserRole.SUPER_USER,
       );
-      await app.createUserRoles(1, 10);
+      const userRoles = await app.batchCreateUserRoles(10);
 
       return request(app.getHttpServer())
         .get('/user_roles?page=1&size=5')
@@ -99,17 +98,21 @@ describe('UserRoleController (e2e)', () => {
         .expect(200)
         .expect(({ body }) => {
           expect(body).toBeObject();
-          expect(body).toStrictEqual(
-            expect.objectContaining({
-              user_roles: arrayContainingUserRoles(6, 5),
-              page: {
-                number: 1,
-                size: 5,
-                totalPages: 2,
-                totalElements: 10,
-              },
-            }),
-          );
+          expect(body).toStrictEqual({
+            user_roles: containingUserRoles(
+              userRoles[5],
+              userRoles[6],
+              userRoles[7],
+              userRoles[8],
+              userRoles[9],
+            ),
+            page: {
+              number: 1,
+              size: 5,
+              totalPages: 2,
+              totalElements: 10,
+            },
+          });
         });
     });
 
