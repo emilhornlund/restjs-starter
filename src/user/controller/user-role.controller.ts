@@ -63,7 +63,7 @@ export class UserRoleController {
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @HasUserAuthority(UserAuthority.AUTHORITY_ADMINISTRATION_READ)
-  public findAllUserAuthorities(
+  public findAllUserRoles(
     @PageableQueryParam() pageable: PageableRequest,
   ): Promise<PagedUserRoleResponse> {
     return this.userRoleService
@@ -82,7 +82,7 @@ export class UserRoleController {
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @HasUserAuthority(UserAuthority.AUTHORITY_ADMINISTRATION_WRITE)
-  public createUser(
+  public createUserRole(
     @Body() createUserRequest: CreateUserRoleRequest,
   ): Promise<UserRoleResponse> {
     return this.userRoleService
@@ -103,7 +103,7 @@ export class UserRoleController {
   @ApiForbiddenResponse()
   @ApiUserRoleNotFoundResponse()
   @HasUserAuthority(UserAuthority.AUTHORITY_ADMINISTRATION_READ)
-  public findUser(
+  public findUserRole(
     @UserRoleIdParam() userRoleId: string,
   ): Promise<UserRoleResponse> {
     return this.userRoleService
@@ -125,7 +125,7 @@ export class UserRoleController {
   @ApiForbiddenResponse()
   @ApiUserRoleNotFoundResponse()
   @HasUserAuthority(UserAuthority.AUTHORITY_ADMINISTRATION_WRITE)
-  public updateUser(
+  public updateUserRole(
     @UserRoleIdParam() userRoleId: string,
     @Body() updateUserRequest: UpdateUserRoleRequest,
   ): Promise<UserRoleResponse> {
@@ -151,7 +151,7 @@ export class UserRoleController {
   @ApiForbiddenResponse()
   @ApiUserRoleNotFoundResponse()
   @HasUserAuthority(UserAuthority.AUTHORITY_ADMINISTRATION_WRITE)
-  public deleteUser(@UserRoleIdParam() userRoleId: string) {
+  public deleteUserRole(@UserRoleIdParam() userRoleId: string) {
     return this.userRoleService.deleteUserRole(userRoleId);
   }
 
